@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+import { serialize } from 'cookie';
 import bcrypt from 'bcryptjs';
 import { supabase } from '@/lib/db';
 
@@ -29,9 +31,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
 
-    // TODO: Create and return session/token here if needed
+    const token = jwt.sign(
+      { id: users.id },
+      process.env.JWT_SECRET!,
+      { expiresIn: '7d' }
+    );
 
-    return NextResponse.json({ message: 'Login successful' });
+    const cookie = serialize('session', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+
+    const res = NextResponse.json({ success: true });
+    res.headers.set('Set-Cookie', cookie);
+    return res;
   } catch (err) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
