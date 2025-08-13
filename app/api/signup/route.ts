@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { supabase } from '@/lib/db'; // adjust your import path
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   if (req.method !== 'POST') {
     return NextResponse.json(
       { error: 'Method Not Allowed' },
