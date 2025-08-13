@@ -68,7 +68,7 @@ export default function Login() {
       {error && <p className="text-red-600">{error}</p>}
 
       <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-        LOGIN
+        CHANGED THE LOGIN BUTTON
       </button>
       <div className="text-center my-4 font-semibold text-gray-500">OR</div>
 
