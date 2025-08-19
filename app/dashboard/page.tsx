@@ -98,15 +98,6 @@ export default function DashboardPage() {
         <LogoutButton />
       </header>
 
-      {/* Search Bar */}
-      <div className="p-4 flex justify-center">
-        <input
-          type="text"
-          placeholder="Search for shoes..."
-          className="w-full max-w-md border border-gray-300 rounded-lg p-2"
-        />
-      </div>
-
       {/* Watchlist Section */}
       <section className="flex-grow flex flex-col items-center justify-start p-4">
         <h2 className="text-xl font-semibold mb-4">Your Watchlist</h2>
