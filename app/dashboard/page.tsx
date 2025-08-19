@@ -117,7 +117,9 @@ export default function DashboardPage() {
             <ul className="space-y-2">
               {shoes.map((item) => (
                 <li key={item.shoe_id} className="border-b pb-2">
-                  `${item.brand} ${item.model}`
+                  <Link href={`/shoes/${item.slug}`} className="text-blue-600 hover:underline">
+                    {item.brand} {item.model}
+                  </Link>
                 </li>
               ))}
             </ul>
