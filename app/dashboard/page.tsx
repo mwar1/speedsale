@@ -12,7 +12,7 @@ interface User {
 }
 
 interface Shoe {
-  shoe_id: string;
+  id: string;
   brand: string;
   model: string;
   slug: string;
@@ -46,28 +46,39 @@ export default function DashboardPage() {
     fetchUser();
   }, []);
 
+  async function fetchWatchlist() {
+    const res = await fetch('/api/watchlist', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || 'Failed to fetch watchlist');
+      return;
+    }
+
+    setShoes(data.watchlist || []);
+  }
+
   // Fetch watchlist when user is known
   useEffect(() => {
     if (!user) return;
 
-    async function fetchWatchlist() {
-      const res = await fetch('/api/watchlist', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        cache: 'no-store',
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Failed to fetch watchlist');
-        return;
-      }
-
-      setShoes(data.watchlist || []);
-    }
-
     fetchWatchlist();
   }, [user]);
+
+  const removeFromWatchlist = async (shoeId: string) => {
+    console.log(shoeId)
+    await fetch('/api/watchlist/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shoe_id: shoeId }),
+    })
+
+    fetchWatchlist();
+  };
 
   if (!user) {
     return (
@@ -106,11 +117,19 @@ export default function DashboardPage() {
           ) : (
             <ul className="space-y-2">
               {shoes.map((item) => (
-                <li key={item.shoe_id} className="border-b pb-2">
+                <>
+                <li key={item.id} className="border-b pb-2">
                   <Link href={`/shoes/${item.slug}`} className="text-blue-600 hover:underline">
                     {item.brand} {item.model}
                   </Link>
                 </li>
+                <button
+                  className="ml-2 px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                  onClick={() => removeFromWatchlist(item.id)}
+                >
+                  Remove from Watchlist
+                </button>
+                </>
               ))}
             </ul>
           )}
