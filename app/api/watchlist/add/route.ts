@@ -24,20 +24,18 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabase.from('watchlists').insert([
       {
+        user_id,
         shoe_id,
         discount,
-        user_id,
       },
     ]);
 
     if (error) {
-      console.error(error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, watchlist: data });
   } catch (err) {
-    console.error(err);
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }

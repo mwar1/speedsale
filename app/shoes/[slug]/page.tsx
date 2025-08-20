@@ -22,7 +22,7 @@ export default async function ShoePage({params}: {params: Promise<{ slug: string
   return (
     <main className="p-4">
       <h1 className="text-2xl font-bold">{shoe.brand} {shoe.model}</h1>
-      <p>Price: ${shoe.price}</p>
+      <p>Price: $IDK</p>
     </main>
   );
 }

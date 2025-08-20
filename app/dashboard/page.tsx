@@ -12,7 +12,7 @@ interface User {
 }
 
 interface Shoe {
-  shoe_id: number;
+  shoe_id: string;
   brand: string;
   model: string;
   slug: string;
@@ -57,13 +57,12 @@ export default function DashboardPage() {
         cache: 'no-store',
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
         setError(data.error || 'Failed to fetch watchlist');
         return;
       }
 
-      const data = await res.json();
       setShoes(data.watchlist || []);
     }
 

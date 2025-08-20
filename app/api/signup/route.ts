@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
   if (!email || !firstName || !surname || !password) {
     return NextResponse.json(
-      { error: 'MMissing required fields' },
+      { error: 'Missing required fields' },
       { status: 400 }
     );
   }
@@ -29,14 +29,14 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: error },
+        { error: error.message },
         { status: 500 }
       );
     }
 
     return NextResponse.json(
       { message: 'Success' },
-      { status: 201 }  // set HTTP status here
+      { status: 201 }
     );
   } catch (err) {
     return NextResponse.json(

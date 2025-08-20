@@ -19,7 +19,10 @@ export async function GET() {
 
   if (watchlist_error) throw watchlist_error;
   
-  const shoeIds = watchlist.map((row) => row.shoe_id);
+  const shoeIds = watchlist
+  .map((row) => row.shoe_id)
+  .filter((id): id is string => id !== null);
+
   const { data: shoes, error } = await supabase
     .from('shoes')
     .select('*')
