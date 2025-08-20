@@ -115,6 +115,12 @@ export default function DashboardPage() {
             </ul>
           )}
         </div>
+        <Link
+          href="/shoes/search"
+          className="block w-full text-center border border-green-600 text-green-600 py-2 rounded hover:bg-green-50"
+        >
+          ADD TO WATCHLIST
+        </Link>
       </section>
     </main>
   );

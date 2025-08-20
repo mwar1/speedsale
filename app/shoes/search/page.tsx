@@ -17,10 +17,12 @@ export default function ShoeSearchPage() {
   const [selectedShoe, setSelectedShoe] = useState<Shoe | null>(null);
   const [discount, setDiscount] = useState<number | ''>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [watchlist, setWatchlist] = useState<string[]>([]);
 
   // Fetch all shoes initially
   useEffect(() => {
     fetchShoes('');
+    fetchWatchlist();
   }, []);
 
   const fetchShoes = async (query: string) => {
@@ -33,6 +35,12 @@ export default function ShoeSearchPage() {
     const value = e.target.value;
     setSearch(value);
     debouncedFetch(value);
+  };
+
+  const fetchWatchlist = async () => {
+    const res = await fetch('/api/watchlist');
+    const data = await res.json();
+    setWatchlist(data.watchlist.map((item: { id: string }) => item.id));
   };
 
   const debouncedFetch = debounce(fetchShoes, 300);
@@ -62,10 +70,29 @@ export default function ShoeSearchPage() {
     });
 
     closeModal();
+    // Refresh
+    fetchWatchlist();
+  };
+
+  const removeFromWatchlist = async (shoeId: string) => {
+    await fetch('/api/watchlist/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shoe_id: shoeId }),
+    });
+
+    // Refresh
+    fetchWatchlist();
   };
 
   return (
     <main className="p-4">
+      <Link
+        href="/dashboard"
+        className="block text-center border border-green-600 text-green-600 py-2 rounded hover:bg-green-50"
+      >
+        BACK
+      </Link>
       <input
         type="text"
         placeholder="Search shoes by brand or model..."
@@ -81,12 +108,21 @@ export default function ShoeSearchPage() {
               <Link href={`/shoes/${shoe.slug}`} className="text-blue-600 hover:underline">
                 {shoe.brand} {shoe.model}
               </Link>
-              <button
-                className="ml-2 px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                onClick={() => openModal(shoe)}
-              >
-                Add to Watchlist
-              </button>
+              {watchlist.includes(shoe.id) ? (
+                <button
+                  className="ml-2 px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                  onClick={() => removeFromWatchlist(shoe.id)}
+                >
+                  Remove from Watchlist
+                </button>
+              ) : (
+                <button
+                  className="ml-2 px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                  onClick={() => openModal(shoe)}
+                >
+                  Add to Watchlist
+                </button>
+              )}
             </li>
           ))}
         </ul>

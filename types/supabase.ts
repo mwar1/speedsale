@@ -76,24 +76,24 @@ export type Database = {
           brand: string | null
           created_at: string
           id: string
-          lowest_price: number | null
           model: string | null
+          price: number | null
           slug: string | null
         }
         Insert: {
           brand?: string | null
           created_at?: string
           id?: string
-          lowest_price?: number | null
           model?: string | null
+          price?: number | null
           slug?: string | null
         }
         Update: {
           brand?: string | null
           created_at?: string
           id?: string
-          lowest_price?: number | null
           model?: string | null
+          price?: number | null
           slug?: string | null
         }
         Relationships: []
