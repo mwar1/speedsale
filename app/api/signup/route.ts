@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert user into DB
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('users')
       .insert([{ email, fname: firstName, sname: surname, password: hashedPassword }]);
 
@@ -39,8 +39,9 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json(
-        { error: err },
+        { error: message },
         { status: 500 }
       );
   }

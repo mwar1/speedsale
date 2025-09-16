@@ -23,6 +23,8 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [shoes, setShoes] = useState<Shoe[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
+  const [isLoadingWatchlist, setIsLoadingWatchlist] = useState<boolean>(false);
 
   // Fetch user
   useEffect(() => {
@@ -36,17 +38,20 @@ export default function DashboardPage() {
       if (!res.ok) {
         const data = await res.json();
         setError(data.error || 'Failed to fetch user');
+        setIsLoadingUser(false);
         return;
       }
 
       const data = await res.json();
       setUser(data.user);
+      setIsLoadingUser(false);
     }
 
     fetchUser();
   }, []);
 
   async function fetchWatchlist() {
+    setIsLoadingWatchlist(true);
     const res = await fetch('/api/watchlist', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
@@ -56,10 +61,12 @@ export default function DashboardPage() {
     const data = await res.json();
     if (!res.ok) {
       setError(data.error || 'Failed to fetch watchlist');
+      setIsLoadingWatchlist(false);
       return;
     }
 
     setShoes(data.watchlist || []);
+    setIsLoadingWatchlist(false);
   }
 
   // Fetch watchlist when user is known
@@ -80,66 +87,131 @@ export default function DashboardPage() {
     fetchWatchlist();
   };
 
+  if (isLoadingUser) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-50">
+        <div className="flex items-center space-x-3 text-gray-600">
+          <span className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
+          <span className="text-sm">Loading your dashboard…</span>
+        </div>
+      </main>
+    );
+  }
+
   if (!user) {
     return (
-      <main className="p-4 flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-xl font-bold">You are not logged in.</h1>
-        <Link
-          href="/login"
-          className="mt-4 block w-full text-center border border-green-600 text-green-600 py-2 rounded hover:bg-green-50"
-        >
-          LOGIN HERE
-        </Link>
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-50 p-6">
+        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+          <h1 className="text-2xl font-semibold tracking-tight">You are not logged in</h1>
+          <p className="mt-2 text-sm text-gray-600">Please sign in to view your personalized dashboard and watchlist.</p>
+          <Link
+            href="/login"
+            className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+          >
+            Login
+          </Link>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Top Banner */}
-      <header className="flex items-center justify-between bg-gray-100 p-4 shadow">
-        <Link
-          href="/profile"
-          className="text-blue-600 font-semibold hover:underline"
-        >
-          Profile
-        </Link>
-        <h1 className="text-lg font-bold">Hello {user.fname} {user.sname}</h1>
-        <LogoutButton />
+      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+          <Link href="/profile" className="flex items-center space-x-3 group">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white ring-0 ring-transparent group-hover:ring-2 group-hover:ring-emerald-400 transition">
+              {user.fname?.[0]}
+            </div>
+            <div className="leading-tight">
+              <p className="text-sm text-gray-500">Welcome back</p>
+              <h1 className="text-base font-semibold group-hover:underline">{user.fname} {user.sname}</h1>
+            </div>
+          </Link>
+          <div className="flex items-center space-x-3">
+            <Link
+              href="/profile"
+              className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+            >
+              Profile
+            </Link>
+            <LogoutButton />
+          </div>
+        </div>
       </header>
 
-      {/* Watchlist Section */}
-      <section className="flex-grow flex flex-col items-center justify-start p-4">
-        <h2 className="text-xl font-semibold mb-4">Your Watchlist</h2>
-        <div className="w-full max-w-2xl border rounded-lg p-4 bg-white shadow">
-          {shoes.length === 0 ? (
-            <p className="text-gray-500">Your watchlist is empty.</p>
-          ) : (
-            <ul className="space-y-2">
-              {shoes.map((item) => (
-                <>
-                <li key={item.id} className="border-b pb-2">
-                  <Link href={`/shoes/${item.slug}`} className="text-blue-600 hover:underline">
-                    {item.brand} {item.model}
-                  </Link>
-                </li>
-                <button
-                  className="ml-2 px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                  onClick={() => removeFromWatchlist(item.id)}
-                >
-                  Remove from Watchlist
-                </button>
-                </>
-              ))}
-            </ul>
-          )}
+      {/* Content */}
+      <section className="mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">Your Watchlist</h2>
+            <p className="mt-1 text-sm text-gray-600">{"Quick access to models you're tracking."}</p>
+          </div>
+          <Link
+            href="/shoes/search"
+            className="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+          >
+            Add shoes
+          </Link>
         </div>
-        <Link
-          href="/shoes/search"
-          className="block w-full text-center border border-green-600 text-green-600 py-2 rounded hover:bg-green-50"
-        >
-          ADD TO WATCHLIST
-        </Link>
+
+        {/* Error banner */}
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+            {error}
+          </div>
+        )}
+
+        {/* Loading state */}
+        {isLoadingWatchlist ? (
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, idx) => (
+              <li key={idx} className="animate-pulse rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="h-5 w-3/4 rounded bg-gray-200" />
+                <div className="mt-3 h-4 w-1/2 rounded bg-gray-200" />
+                <div className="mt-6 h-9 w-full rounded bg-gray-200" />
+              </li>
+            ))}
+          </ul>
+        ) : shoes.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center shadow-sm">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">👟</div>
+            <p className="mt-3 text-base font-medium">Your watchlist is empty</p>
+            <p className="mt-1 text-sm text-gray-600">Start tracking prices for your favorite models.</p>
+            <Link
+              href="/shoes/search"
+              className="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+            >
+              Discover shoes
+            </Link>
+          </div>
+        ) : (
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {shoes.map((item) => (
+              <li key={item.id} className="group flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+                <div className="flex-1">
+                  <p className="text-sm text-gray-500">{item.brand}</p>
+                  <p className="mt-0.5 text-base font-semibold tracking-tight">{item.model}</p>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <Link
+                    href={`/shoes/${item.slug}`}
+                    className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    View
+                  </Link>
+                  <button
+                    className="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+                    onClick={() => removeFromWatchlist(item.id)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );

@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Compare password with stored hash
-    const validPassword = bcrypt.compare(password, users.password);
+    const validPassword = await bcrypt.compare(password, users.password);
 
     if (!validPassword) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
     res.headers.set('Set-Cookie', cookie);
     return res;
   } catch (err) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -43,42 +43,53 @@ export default function Login() {
   }
 
   return (
-    <>
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 border rounded space-y-4">
-      <h2 className="text-xl font-bold">Login</h2>
+    <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+        <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+        <p className="mt-1 text-sm text-gray-600">Welcome back. Please enter your details.</p>
 
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-        className="w-full p-2 border rounded"
-        required
-      />
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <div>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              required
+            />
+          </div>
 
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        className="w-full p-2 border rounded"
-        required
-      />
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              required
+            />
+          </div>
 
-      {error && <p className="text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-        LOGIN
-      </button>
-      <div className="text-center my-4 font-semibold text-gray-500">OR</div>
+          <button
+            type="submit"
+            className="inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+          >
+            Login
+          </button>
 
-      <Link
-        href="/signup"
-        className="block w-full text-center border border-blue-600 text-blue-600 py-2 rounded hover:bg-blue-50"
-      >
-        CREATE ACCOUNT
-      </Link>
-    </form>
-    </>
+          <div className="text-center text-sm text-gray-500">or</div>
+
+          <Link
+            href="/signup"
+            className="inline-flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+          >
+            Create account
+          </Link>
+        </form>
+      </div>
+    </main>
   );
 }

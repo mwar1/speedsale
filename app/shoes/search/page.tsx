@@ -86,77 +86,85 @@ export default function ShoeSearchPage() {
   };
 
   return (
-    <main className="p-4">
-      <Link
-        href="/dashboard"
-        className="block text-center border border-green-600 text-green-600 py-2 rounded hover:bg-green-50"
-      >
-        BACK
-      </Link>
-      <input
-        type="text"
-        placeholder="Search shoes by brand or model..."
-        value={search}
-        onChange={handleSearchChange}
-        className="w-full p-2 border rounded mb-4"
-      />
+    <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 p-6">
+      <div className="mx-auto max-w-3xl">
+        <div className="flex items-center justify-between">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+          >
+            Back
+          </Link>
+        </div>
 
-      <div className="max-h-[500px] overflow-y-auto border rounded p-2">
-        <ul className="space-y-2">
-          {shoes.map((shoe) => (
-            <li key={shoe.id} className="flex justify-between items-center border-b pb-2">
-              <Link href={`/shoes/${shoe.slug}`} className="text-blue-600 hover:underline">
-                {shoe.brand} {shoe.model}
-              </Link>
-              {watchlist.includes(shoe.id) ? (
-                <button
-                  className="ml-2 px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                  onClick={() => removeFromWatchlist(shoe.id)}
-                >
-                  Remove from Watchlist
-                </button>
-              ) : (
-                <button
-                  className="ml-2 px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                  onClick={() => openModal(shoe)}
-                >
-                  Add to Watchlist
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-        {shoes.length === 0 && <p>No shoes found.</p>}
+        <div className="mt-6">
+          <input
+            type="text"
+            placeholder="Search shoes by brand or model..."
+            value={search}
+            onChange={handleSearchChange}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+
+        <div className="mt-6 max-h-[520px] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+          <ul className="divide-y divide-gray-200">
+            {shoes.map((shoe) => (
+              <li key={shoe.id} className="flex items-center justify-between py-3">
+                <div>
+                  <p className="text-sm text-gray-500">{shoe.brand}</p>
+                  <p className="text-base font-medium">{shoe.model}</p>
+                </div>
+                {watchlist.includes(shoe.id) ? (
+                  <button
+                    className="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+                    onClick={() => removeFromWatchlist(shoe.id)}
+                  >
+                    Remove
+                  </button>
+                ) : (
+                  <button
+                    className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                    onClick={() => openModal(shoe)}
+                  >
+                    Add
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          {shoes.length === 0 && (
+            <p className="py-6 text-center text-sm text-gray-600">No shoes found.</p>
+          )}
+        </div>
       </div>
 
       {/* Modal */}
       {isModalOpen && selectedShoe && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded p-6 w-96 relative">
-            <h2 className="text-lg font-bold mb-4">
-              Add {selectedShoe.brand} {selectedShoe.model} to Watchlist
-            </h2>
-            <label className="block mb-2">
-              Discount % you are looking for:
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
+            <h2 className="text-lg font-semibold">Add {selectedShoe.brand} {selectedShoe.model}</h2>
+            <label className="mt-4 block text-sm text-gray-700">
+              Discount % you are looking for
               <input
                 type="number"
                 min={0}
                 max={100}
                 value={discount}
                 onChange={(e) => setDiscount(Number(e.target.value))}
-                className="w-full p-2 border rounded mt-1"
+                className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </label>
 
-            <div className="flex justify-end mt-4 space-x-2">
+            <div className="mt-6 flex justify-end gap-2">
               <button
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                 onClick={closeModal}
               >
                 Cancel
               </button>
               <button
-                className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ${
+                className={`inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 ${
                   discount === '' ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 onClick={addToWatchlist}
