@@ -43,8 +43,8 @@ export default function Login() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+    <main className="min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-md card p-8">
         <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
         <p className="mt-1 text-sm text-gray-600">Welcome back. Please enter your details.</p>
 
@@ -55,7 +55,7 @@ export default function Login() {
               placeholder="Email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
               required
             />
           </div>
@@ -66,7 +66,7 @@ export default function Login() {
               placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="input"
               required
             />
           </div>
@@ -75,7 +75,7 @@ export default function Login() {
 
           <button
             type="submit"
-            className="inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+            className="btn btn-primary w-full"
           >
             Login
           </button>
@@ -84,7 +84,7 @@ export default function Login() {
 
           <Link
             href="/signup"
-            className="inline-flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+            className="btn btn-outline w-full"
           >
             Create account
           </Link>

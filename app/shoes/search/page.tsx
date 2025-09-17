@@ -86,12 +86,12 @@ export default function ShoeSearchPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 p-6">
+    <main className="min-h-screen p-6">
       <div className="mx-auto max-w-3xl">
         <div className="flex items-center justify-between">
           <Link
             href="/dashboard"
-            className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+            className="btn btn-outline"
           >
             Back
           </Link>
@@ -103,11 +103,11 @@ export default function ShoeSearchPage() {
             placeholder="Search shoes by brand or model..."
             value={search}
             onChange={handleSearchChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="input"
           />
         </div>
 
-        <div className="mt-6 max-h-[520px] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="mt-6 max-h-[520px] overflow-y-auto card p-4">
           <ul className="divide-y divide-gray-200">
             {shoes.map((shoe) => (
               <li key={shoe.id} className="flex items-center justify-between py-3">
@@ -117,14 +117,14 @@ export default function ShoeSearchPage() {
                 </div>
                 {watchlist.includes(shoe.id) ? (
                   <button
-                    className="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+                    className="btn btn-danger btn-sm"
                     onClick={() => removeFromWatchlist(shoe.id)}
                   >
                     Remove
                   </button>
                 ) : (
                   <button
-                    className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                    className="btn btn-primary btn-sm"
                     onClick={() => openModal(shoe)}
                   >
                     Add
@@ -142,7 +142,7 @@ export default function ShoeSearchPage() {
       {/* Modal */}
       {isModalOpen && selectedShoe && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
+          <div className="w-full max-w-md card p-6 shadow-lg">
             <h2 className="text-lg font-semibold">Add {selectedShoe.brand} {selectedShoe.model}</h2>
             <label className="mt-4 block text-sm text-gray-700">
               Discount % you are looking for
@@ -152,19 +152,19 @@ export default function ShoeSearchPage() {
                 max={100}
                 value={discount}
                 onChange={(e) => setDiscount(Number(e.target.value))}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="mt-2 input"
               />
             </label>
 
             <div className="mt-6 flex justify-end gap-2">
               <button
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                className="btn btn-outline"
                 onClick={closeModal}
               >
                 Cancel
               </button>
               <button
-                className={`inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 ${
+                className={`btn btn-primary ${
                   discount === '' ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 onClick={addToWatchlist}

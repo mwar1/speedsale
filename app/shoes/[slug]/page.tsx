@@ -15,8 +15,8 @@ export default async function ShoePage({params}: {params: Promise<{ slug: string
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 p-6">
-      <div className="mx-auto max-w-3xl rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+    <main className="min-h-screen p-6">
+      <div className="mx-auto max-w-3xl card p-8">
         <h1 className="text-2xl font-semibold tracking-tight">{shoe.brand} {shoe.model}</h1>
         <p className="mt-2 text-sm text-gray-600">Price: $IDK</p>
       </div>

@@ -89,7 +89,7 @@ export default function DashboardPage() {
 
   if (isLoadingUser) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-50">
+      <main className="min-h-screen flex items-center justify-center">
         <div className="flex items-center space-x-3 text-gray-600">
           <span className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
           <span className="text-sm">Loading your dashboard…</span>
@@ -100,13 +100,13 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-50 p-6">
-        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+      <main className="min-h-screen flex items-center justify-center p-6">
+        <div className="w-full max-w-md card p-8">
           <h1 className="text-2xl font-semibold tracking-tight">You are not logged in</h1>
           <p className="mt-2 text-sm text-gray-600">Please sign in to view your personalized dashboard and watchlist.</p>
           <Link
             href="/login"
-            className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+            className="mt-6 btn btn-primary w-full"
           >
             Login
           </Link>
@@ -116,10 +116,10 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <main className="min-h-screen">
       {/* Top Banner */}
       <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+        <div className="container-max flex items-center justify-between py-4">
           <Link href="/profile" className="flex items-center space-x-3 group">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white ring-0 ring-transparent group-hover:ring-2 group-hover:ring-emerald-400 transition">
               {user.fname?.[0]}
@@ -142,7 +142,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Content */}
-      <section className="mx-auto max-w-6xl px-4 py-8">
+      <section className="container-max py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold tracking-tight">Your Watchlist</h2>
@@ -150,7 +150,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/shoes/search"
-            className="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+            className="btn btn-primary"
           >
             Add shoes
           </Link>
@@ -158,7 +158,7 @@ export default function DashboardPage() {
 
         {/* Error banner */}
         {error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          <div className="mb-6 card border-red-200 bg-red-50 p-3 text-sm text-red-800">
             {error}
           </div>
         )}
@@ -181,7 +181,7 @@ export default function DashboardPage() {
             <p className="mt-1 text-sm text-gray-600">Start tracking prices for your favorite models.</p>
             <Link
               href="/shoes/search"
-              className="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+              className="mt-6 btn btn-primary"
             >
               Discover shoes
             </Link>
@@ -197,12 +197,12 @@ export default function DashboardPage() {
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <Link
                     href={`/shoes/${item.slug}`}
-                    className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="btn btn-outline btn-sm"
                   >
                     View
                   </Link>
                   <button
-                    className="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+                    className="btn btn-danger btn-sm"
                     onClick={() => removeFromWatchlist(item.id)}
                   >
                     Remove

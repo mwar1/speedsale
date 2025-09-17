@@ -58,8 +58,8 @@ export default function Signup() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+    <main className="min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-md card p-8">
         <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
         <p className="mt-1 text-sm text-gray-600">Start tracking your favorite shoes.</p>
 
@@ -69,7 +69,7 @@ export default function Signup() {
             placeholder="Email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="input"
             required
           />
 
@@ -78,7 +78,7 @@ export default function Signup() {
             placeholder="First name"
             value={firstName}
             onChange={e => setFirstName(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="input"
             required
           />
 
@@ -87,7 +87,7 @@ export default function Signup() {
             placeholder="Surname"
             value={surname}
             onChange={e => setSurname(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="input"
             required
           />
 
@@ -96,7 +96,7 @@ export default function Signup() {
             placeholder="Password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="input"
             required
           />
 
@@ -105,7 +105,7 @@ export default function Signup() {
             placeholder="Re-enter password"
             value={passwordConfirm}
             onChange={e => setPasswordConfirm(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="input"
             required
           />
 
@@ -114,7 +114,7 @@ export default function Signup() {
 
           <button
             type="submit"
-            className="inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+            className="btn btn-primary w-full"
           >
             Create account
           </button>
