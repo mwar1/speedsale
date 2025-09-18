@@ -241,9 +241,16 @@ function PasswordModal({ onClose }: PasswordModalProps) {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (mismatch || nextPwd.length < 8) return;
+    if (mismatch) return;
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 900));
+    
+    const res = await fetch('/api/user/password', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ old_pw: current, new_pw: nextPwd }),
+      cache: 'no-store',
+    });
+
     setSubmitting(false);
     onClose();
   };
@@ -272,9 +279,8 @@ function PasswordModal({ onClose }: PasswordModalProps) {
               value={nextPwd}
               onChange={(e) => setNextPwd(e.target.value)}
               className="mt-2 input"
-              placeholder="At least 8 characters"
+              placeholder="Enter your new password"
               required
-              minLength={8}
             />
           </label>
           <label className="block text-sm text-gray-700">
@@ -286,7 +292,6 @@ function PasswordModal({ onClose }: PasswordModalProps) {
               className="mt-2 input"
               placeholder="Repeat new password"
               required
-              minLength={8}
             />
             {mismatch && (
               <p className="mt-1 text-xs text-rose-500">Passwords do not match</p>
@@ -302,8 +307,8 @@ function PasswordModal({ onClose }: PasswordModalProps) {
             </button>
             <button
               type="submit"
-              disabled={submitting || mismatch || nextPwd.length < 8}
-              className={`btn btn-primary ${submitting || mismatch || nextPwd.length < 8 ? 'opacity-60 cursor-not-allowed' : ''}`}
+              disabled={submitting || mismatch}
+              className={`btn btn-primary ${submitting || mismatch ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               {submitting ? 'Changing…' : 'Change password'}
             </button>
