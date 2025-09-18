@@ -52,6 +52,21 @@ export async function PUT(req: NextRequest) {
 
   const { new_fname, new_sname, new_email } = await req.json();
 
+  const { data: existingUsers, error: checkError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', new_email)
+    .neq('id', user.id)
+    .limit(1);
+
+    if (checkError) {
+      return NextResponse.json({ error: checkError.message }, { status: 500 });
+    }
+
+  if (existingUsers?.length) {
+    return NextResponse.json({ error: 'Email already in use' }, { status: 400 });
+  }
+
   const { data: currentUser, error } = await supabase
     .from('users')
     .update({ fname: new_fname, sname: new_sname, email: new_email })

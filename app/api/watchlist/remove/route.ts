@@ -21,7 +21,6 @@ export async function POST(req: NextRequest) {
     .eq('shoe_id', shoe_id);
 
   if (error) {
-    console.error('Error deleting from watchlist:', error);
     return NextResponse.json({ error: 'Failed to delete from watchlist' }, { status: 500 });
   }
 

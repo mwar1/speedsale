@@ -77,7 +77,6 @@ export default function DashboardPage() {
   }, [user]);
 
   const removeFromWatchlist = async (shoeId: string) => {
-    console.log(shoeId)
     await fetch('/api/watchlist/remove', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

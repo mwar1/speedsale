@@ -18,7 +18,6 @@ interface User {
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     async function fetchUser() {
@@ -27,13 +26,6 @@ export default function ProfilePage() {
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store',
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || 'Failed to fetch user');
-        setIsLoadingUser(false);
-        return;
-      }
 
       const data = await res.json();
       setUser(data.user);
@@ -74,7 +66,6 @@ export default function ProfilePage() {
   const initials = `${user.fname[0]}${user.sname[0]}`.toUpperCase();
 
   const memberSince = user ? new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' }) : '—';
-  console.log(user.created_at);
 
   return (
     <main className="min-h-screen w-full">
@@ -160,11 +151,13 @@ function EditableDetails({ defaultFirstName, defaultSurname, defaultEmail, setUs
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const onCancel = () => {
     setFirstName(defaultFirstName);
     setSurname(defaultSurname);
     setEmail(defaultEmail);
+    setError("");
     setIsEditing(false);
   };
 
@@ -178,14 +171,18 @@ function EditableDetails({ defaultFirstName, defaultSurname, defaultEmail, setUs
       cache: 'no-store',
     });
 
+    const updatedUser = await res.json();
     if (res.ok) {
-      const updatedUser = await res.json();
-      console.log(updatedUser.user[0]);
       setUser(updatedUser.user[0]);
+
+      setIsEditing(false);
+    }
+    
+    if (!res.ok) {
+      setError(updatedUser.error);
     }
 
     setSaving(false);
-    setIsEditing(false);
   };
 
   return (
@@ -272,6 +269,13 @@ function EditableDetails({ defaultFirstName, defaultSurname, defaultEmail, setUs
         </div>
       </div>
 
+      {error && (
+        <div className="sm:col-span-2 mt-4">
+          <p className="text-m text-red-600 text-center">{error}</p>
+        </div>
+      )}
+      
+
       {isPasswordOpen && (
         <PasswordModal onClose={() => setIsPasswordOpen(false)} />
       )}
@@ -286,6 +290,8 @@ function PasswordModal({ onClose }: PasswordModalProps) {
   const [nextPwd, setNextPwd] = useState('');
   const [confirm, setConfirm] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
   const mismatch = confirm.length > 0 && nextPwd !== confirm;
 
   const onSubmit = async (e: FormEvent) => {
@@ -301,7 +307,13 @@ function PasswordModal({ onClose }: PasswordModalProps) {
     });
 
     setSubmitting(false);
-    onClose();
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error);
+    } else {
+      onClose();
+    }
+
   };
 
   return (
@@ -321,6 +333,11 @@ function PasswordModal({ onClose }: PasswordModalProps) {
               required
             />
           </label>
+          {error && (
+            <div className="sm:col-span-2 mt-4">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
           <label className="block text-sm text-gray-700">
             New password
             <input

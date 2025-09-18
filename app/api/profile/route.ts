@@ -18,8 +18,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { new_fname, new_sname } = body;
 
-    console.log(user_id, new_fname, new_sname);
-
     if ( new_fname === undefined || new_sname === undefined || !user_id) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }

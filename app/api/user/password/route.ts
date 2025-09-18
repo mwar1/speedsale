@@ -34,12 +34,12 @@ export async function PUT(req: NextRequest) {
   const validPassword = await bcrypt.compare(old_pw, currentPassword.password);
 
   if (!validPassword) {
-    return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
+    return NextResponse.json({ error: 'Incorrect password' }, { status: 401 });
   }
 
   const hashedPassword = await bcrypt.hash(new_pw, 10);
 
-  const { data: currentUser, error } = await supabase
+  const { error } = await supabase
     .from('users')
     .update({ password: hashedPassword })
     .eq('id', user.id)

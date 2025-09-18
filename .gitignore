@@ -12,7 +12,7 @@
 
 # testing
 /coverage
-logins.txt
+logins.csv
 
 # next.js
 /.next/
