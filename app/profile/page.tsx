@@ -1,59 +1,91 @@
 // app/profile/page.tsx
 'use client';
 
-import { useMemo, useState, type FormEvent } from 'react';
+import { SetStateAction, useEffect, Dispatch, useState, type FormEvent } from 'react';
+import LogoutButton from '../dashboard/LogoutButton';
+import Link from 'next/link';
 
-type MockUser = {
+interface User {
+  id: string;
+  fname: string;
+  sname: string;
   email: string;
-  firstName: string;
-  surname: string;
-  profileImageUrl?: string | null;
-  createdAt: string; // ISO string
-  isPremium: boolean;
-};
+  premium: boolean;
+  created_at: string;
+  profileImageUrl: string | null;
+}
 
 export default function ProfilePage() {
-  // Mock data only. Replace with real data when backend is wired.
-  const user: MockUser = useMemo(
-    () => ({
-      email: 'jane.doe@example.com',
-      firstName: 'Jane',
-      surname: 'Doe',
-      profileImageUrl: null,
-      createdAt: '2023-06-15T12:00:00.000Z',
-      isPremium: true,
-    }),
-    []
-  );
-
-  const initials = useMemo(() => {
-    const first = user.firstName?.[0] ?? '';
-    const last = user.surname?.[0] ?? '';
-    return `${first}${last}`.toUpperCase();
-  }, [user.firstName, user.surname]);
-
-  const memberSince = useMemo(() => {
-    try {
-      const date = new Date(user.createdAt);
-      return date.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    async function fetchUser() {
+      const res = await fetch('/api/user', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
       });
-    } catch {
-      return '—';
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Failed to fetch user');
+        setIsLoadingUser(false);
+        return;
+      }
+
+      const data = await res.json();
+      setUser(data.user);
+      setIsLoadingUser(false);
     }
-  }, [user.createdAt]);
+
+    fetchUser();
+  }, []);
+
+  if (isLoadingUser) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center space-x-3 text-gray-600">
+          <span className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
+          <span className="text-sm">Loading your dashboard…</span>
+        </div>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-6">
+        <div className="w-full max-w-md card p-8">
+          <h1 className="text-2xl font-semibold tracking-tight">You are not logged in</h1>
+          <p className="mt-2 text-sm text-gray-600">Please sign in to view your personalized dashboard and watchlist.</p>
+          <Link
+            href="/login"
+            className="mt-6 btn btn-primary w-full"
+          >
+            Login
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const initials = `${user.fname[0]}${user.sname[0]}`.toUpperCase();
+
+  const memberSince = user ? new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' }) : '—';
+  console.log(user.created_at);
 
   return (
     <main className="min-h-screen w-full">
       {/* Top status banner */}
-      <div className={`w-full ${user.isPremium ? 'bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500' : 'bg-gray-200'} `}>
+      <div className={`w-full ${user.premium ? 'bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500' : 'bg-gray-200'} `}>
         <div className="mx-auto max-w-4xl px-6 py-3">
           <div className="flex items-center justify-between gap-3">
-            <p className={`text-sm font-medium ${user.isPremium ? 'text-white' : 'text-black'}`}>
-              {user.isPremium ? 'Premium plan — Enjoying all features' : 'Free plan — Upgrade for more features'}
+            <p className={`text-sm font-medium ${user.premium ? 'text-white' : 'text-black'}`}>
+              {user.premium ? 'Premium plan — Enjoying all features' : 'Free plan — Upgrade for more features'}
             </p>
-            {!user.isPremium && (
+            {!user.premium && (
               <a href="/upgrade" className="btn btn-primary">
                 Upgrade now
               </a>
@@ -77,7 +109,7 @@ export default function ProfilePage() {
                 {user.profileImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    alt={`${user.firstName} ${user.surname}`}
+                    alt={`${user.fname} ${user.sname}`}
                     src={user.profileImageUrl}
                     className="h-full w-full object-cover"
                   />
@@ -89,22 +121,25 @@ export default function ProfilePage() {
               </div>
               <div>
                 <p className="text-xl font-medium text-black">
-                  {user.firstName} {user.surname}
+                  {user.fname} {user.sname}
                 </p>
                 <p className="text-sm text-gray-700">{user.email}</p>
                 <p className="mt-1 text-xs text-gray-600">User since {memberSince}</p>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2"></div>
+            <div className="flex items-center">
+              <LogoutButton />
+            </div>
           </div>
         </section>
 
         {/* Editable details section */}
         <EditableDetails
-          key={`${user.email}-${user.firstName}-${user.surname}`}
+          key={`${user.email}-${user.fname}-${user.sname}`}
           defaultEmail={user.email}
-          defaultFirstName={user.firstName}
-          defaultSurname={user.surname}
+          defaultFirstName={user.fname}
+          defaultSurname={user.sname}
+          setUser={setUser}
         />
       </div>
     </main>
@@ -115,9 +150,10 @@ type EditableDetailsProps = {
   defaultFirstName: string;
   defaultSurname: string;
   defaultEmail: string;
+  setUser: Dispatch<SetStateAction<User | null>>;
 };
 
-function EditableDetails({ defaultFirstName, defaultSurname, defaultEmail }: EditableDetailsProps) {
+function EditableDetails({ defaultFirstName, defaultSurname, defaultEmail, setUser }: EditableDetailsProps) {
   const [firstName, setFirstName] = useState(defaultFirstName);
   const [surname, setSurname] = useState(defaultSurname);
   const [email, setEmail] = useState(defaultEmail);
@@ -134,7 +170,20 @@ function EditableDetails({ defaultFirstName, defaultSurname, defaultEmail }: Edi
 
   const onSave = async () => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 700));
+    
+    const res = await fetch('/api/user', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ new_fname: firstName, new_sname: surname, new_email: email }),
+      cache: 'no-store',
+    });
+
+    if (res.ok) {
+      const updatedUser = await res.json();
+      console.log(updatedUser.user[0]);
+      setUser(updatedUser.user[0]);
+    }
+
     setSaving(false);
     setIsEditing(false);
   };

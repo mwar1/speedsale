@@ -56,7 +56,11 @@ export async function PUT(req: NextRequest) {
     .from('users')
     .update({ fname: new_fname, sname: new_sname, email: new_email })
     .eq('id', user.id)
-    .single();
+    .select();
 
-  console.log(currentUser, error);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  
+    return NextResponse.json({ user: currentUser }, { status: 200 });
 }
