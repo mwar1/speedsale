@@ -29,7 +29,7 @@ export default function DashboardPage() {
   // Fetch user
   useEffect(() => {
     async function fetchUser() {
-      const res = await fetch('/api/dashboard', {
+      const res = await fetch('/api/user', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store',
