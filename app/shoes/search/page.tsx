@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import debounce from 'lodash.debounce';
+import ShoeImage from '@/components/ShoeImage';
 
 interface Shoe {
   id: string;
-  brand: string;
-  model: string;
-  slug: string;
+  brand: string | null;
+  model: string | null;
+  slug: string | null;
+  image_url: string | null;
 }
 
 export default function ShoeSearchPage() {
@@ -110,8 +112,9 @@ export default function ShoeSearchPage() {
         <div className="mt-6 max-h-[520px] overflow-y-auto card p-4">
           <ul className="divide-y divide-gray-200">
             {shoes.map((shoe) => (
-              <li key={shoe.id} className="flex items-center justify-between py-3">
-                <div>
+              <li key={shoe.id} className="flex items-center gap-4 py-3">
+                <ShoeImage imageUrl={shoe.image_url} brand={shoe.brand} model={shoe.model} size="small" />
+                <div className="flex-1">
                   <p className="text-sm text-gray-500">{shoe.brand}</p>
                   <p className="text-base font-medium">{shoe.model}</p>
                 </div>

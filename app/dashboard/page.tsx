@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import LogoutButton from './LogoutButton';
 import Link from "next/link";
+import ShoeImage from '@/components/ShoeImage';
 
 interface User {
   id: string;
@@ -13,11 +14,11 @@ interface User {
 
 interface Shoe {
   id: string;
-  brand: string;
-  model: string;
-  slug: string;
+  brand: string | null;
+  model: string | null;
+  slug: string | null;
+  image_url: string | null;
 }
-
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -189,11 +190,14 @@ export default function DashboardPage() {
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {shoes.map((item) => (
               <li key={item.id} className="group flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md">
-                <div className="flex-1">
-                  <p className="text-sm text-gray-500">{item.brand}</p>
-                  <p className="mt-0.5 text-base font-semibold tracking-tight">{item.model}</p>
+                <div className="flex gap-4 mb-4">
+                  <ShoeImage imageUrl={item.image_url} brand={item.brand} model={item.model} size="medium" />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-500">{item.brand}</p>
+                    <p className="mt-0.5 text-base font-semibold tracking-tight">{item.model}</p>
+                  </div>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <Link
                     href={`/shoes/${item.slug}`}
                     className="btn btn-outline btn-sm"
