@@ -16,22 +16,43 @@ export type Database = {
     Tables: {
       prices: {
         Row: {
+          color: string | null
           date: string
+          discount_percentage: number | null
           id: string
+          in_stock: boolean | null
+          original_price: number | null
+          price: number | null
+          product_url: string | null
           retailer_id: string | null
           shoe_id: string | null
+          size: string | null
         }
         Insert: {
+          color?: string | null
           date?: string
+          discount_percentage?: number | null
           id?: string
+          in_stock?: boolean | null
+          original_price?: number | null
+          price?: number | null
+          product_url?: string | null
           retailer_id?: string | null
           shoe_id?: string | null
+          size?: string | null
         }
         Update: {
+          color?: string | null
           date?: string
+          discount_percentage?: number | null
           id?: string
+          in_stock?: boolean | null
+          original_price?: number | null
+          price?: number | null
+          product_url?: string | null
           retailer_id?: string | null
           shoe_id?: string | null
+          size?: string | null
         }
         Relationships: [
           {
@@ -54,19 +75,28 @@ export type Database = {
         Row: {
           enabled: boolean | null
           id: string
+          last_scraped: string | null
           name: string | null
+          scraping_config: Json | null
+          scraping_interval_hours: number | null
           url: string | null
         }
         Insert: {
           enabled?: boolean | null
           id?: string
+          last_scraped?: string | null
           name?: string | null
+          scraping_config?: Json | null
+          scraping_interval_hours?: number | null
           url?: string | null
         }
         Update: {
           enabled?: boolean | null
           id?: string
+          last_scraped?: string | null
           name?: string | null
+          scraping_config?: Json | null
+          scraping_interval_hours?: number | null
           url?: string | null
         }
         Relationships: []
@@ -74,24 +104,39 @@ export type Database = {
       shoes: {
         Row: {
           brand: string | null
+          category: string | null
           created_at: string
+          description: string | null
+          gender: string | null
           id: string
+          image_url: string | null
+          last_scraped: string | null
           model: string | null
           price: number | null
           slug: string | null
         }
         Insert: {
           brand?: string | null
+          category?: string | null
           created_at?: string
+          description?: string | null
+          gender?: string | null
           id?: string
+          image_url?: string | null
+          last_scraped?: string | null
           model?: string | null
           price?: number | null
           slug?: string | null
         }
         Update: {
           brand?: string | null
+          category?: string | null
           created_at?: string
+          description?: string | null
+          gender?: string | null
           id?: string
+          image_url?: string | null
+          last_scraped?: string | null
           model?: string | null
           price?: number | null
           slug?: string | null
