@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/health-check",
+      "schedule": "55 */12 * * *"
+    },
+    {
+      "path": "/api/cron/scrape-sportsshoes",
+      "schedule": "0 */12 * * *"
+    },
+    {
+      "path": "/api/cron/analyse-prices",
+      "schedule": "5 */12 * * *"
+    }
+  ]
+}
