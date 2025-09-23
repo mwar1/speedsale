@@ -1,23 +1,12 @@
 'use client';
 
-import Link from 'next/link'
+import Link from 'next/link';
+import Header from '@/components/Header'
 
 export default function Home() {
   return (
     <main className="min-h-screen">
-      {/* Top navigation */}
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/80 backdrop-blur">
-        <div className="container-max flex items-center justify-between py-4">
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gray-900 text-sm font-bold tracking-tight text-white">SS</span>
-            <span className="text-base font-semibold tracking-tight">SpeedSale</span>
-          </Link>
-          <nav className="flex items-center gap-3">
-            <Link href="/login" className="btn btn-outline btn-sm">Log in</Link>
-            <Link href="/signup" className="btn btn-primary btn-sm">Get started</Link>
-          </nav>
-        </div>
-      </header>
+      <Header showAuthButtons={true} />
 
       {/* Hero */}
       <section className="relative overflow-hidden">

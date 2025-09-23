@@ -1,5 +1,6 @@
 'use client';
 
+import Header from '@/components/Header';
 import ShoeImage from '@/components/ShoeImage';
 
 export default function DemoPage() {
@@ -55,33 +56,7 @@ export default function DemoPage() {
         </div>
       </div>
 
-      {/* Top Banner */}
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/80 backdrop-blur">
-        <div className="container-max flex items-center justify-between py-4">
-          <div className="flex items-center space-x-3 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white ring-0 ring-transparent group-hover:ring-2 group-hover:ring-emerald-400 transition">
-              {user.fname?.[0]}
-            </div>
-            <div className="leading-tight">
-              <p className="text-sm text-gray-500">Welcome back</p>
-              <h1 className="text-base font-semibold">{user.fname} {user.sname}</h1>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <button
-              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-              onClick={() => window.location.href = '/'}
-            >
-              ← Back to Home
-            </button>
-            <button
-              className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
-            >
-              Profile
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header user={user} isDemo={true} />
 
       {/* Content */}
       <section className="container-max py-8">

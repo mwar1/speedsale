@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import LogoutButton from './LogoutButton';
+import Header from '@/components/Header';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from "next/link";
 import ShoeImage from '@/components/ShoeImage';
 
@@ -90,10 +91,7 @@ export default function DashboardPage() {
   if (isLoadingUser) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center space-x-3 text-gray-600">
-          <span className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
-          <span className="text-sm">Loading your dashboard…</span>
-        </div>
+        <LoadingSpinner text="Loading your dashboard…" />
       </main>
     );
   }
@@ -117,29 +115,7 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen">
-      {/* Top Banner */}
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/80 backdrop-blur">
-        <div className="container-max flex items-center justify-between py-4">
-          <Link href="/profile" className="flex items-center space-x-3 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white ring-0 ring-transparent group-hover:ring-2 group-hover:ring-emerald-400 transition">
-              {user.fname?.[0]}
-            </div>
-            <div className="leading-tight">
-              <p className="text-sm text-gray-500">Welcome back</p>
-              <h1 className="text-base font-semibold group-hover:underline">{user.fname} {user.sname}</h1>
-            </div>
-          </Link>
-          <div className="flex items-center space-x-3">
-            <Link
-              href="/profile"
-              className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
-            >
-              Profile
-            </Link>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
+      <Header user={user} />
 
       {/* Content */}
       <section className="container-max py-8">

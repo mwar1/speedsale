@@ -2,7 +2,8 @@
 'use client';
 
 import { SetStateAction, useEffect, Dispatch, useState, type FormEvent } from 'react';
-import LogoutButton from '../dashboard/LogoutButton';
+import LogoutButton from '@/components/LogoutButton';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import Link from 'next/link';
 
 interface User {
@@ -38,10 +39,7 @@ export default function ProfilePage() {
   if (isLoadingUser) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center space-x-3 text-gray-600">
-          <span className="h-5 w-5 rounded-full border-2 border-gray-300 border-t-transparent animate-spin" />
-          <span className="text-sm">Loading your dashboard…</span>
-        </div>
+        <LoadingSpinner text="Loading your profile…" />
       </main>
     );
   }
