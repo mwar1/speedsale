@@ -18,7 +18,7 @@ export const retailerConfigs: RetailerConfig[] = [
     },
     pagination: {
       type: 'numbered',
-      maxPages: 10
+      maxPages: 2
     },
     rateLimit: {
       delayMs: 200,

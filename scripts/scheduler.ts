@@ -193,11 +193,32 @@ class ScrapingScheduler {
       console.error('💥 Health check failed:', error);
     }
   }
+
+  // Public methods for one-time execution
+  async runHealthCheck(): Promise<void> {
+    await this.healthCheck();
+  }
+
+  async runPriceAnalysis(): Promise<void> {
+    await this.analyzePricesAndSendAlerts();
+  }
+
+  async runScrapingJob(retailer: string, category: string): Promise<void> {
+    try {
+      const result = await this.scraperManager.scrapeRetailer(retailer, category);
+      console.log(`✅ Scraping completed: ${result.productsFound} found, ${result.productsSaved} saved`);
+    } catch (error) {
+      console.error('💥 Scraping failed:', error);
+      throw error;
+    }
+  }
 }
 
 // Main execution
 async function main() {
   const scheduler = new ScrapingScheduler();
+  const args = process.argv.slice(2);
+  const command = args[0];
 
   // Handle graceful shutdown
   process.on('SIGINT', () => {
@@ -212,13 +233,30 @@ async function main() {
     process.exit(0);
   });
 
-  // Start the scheduler
-  scheduler.start();
+  // Handle command-line arguments
+  if (command === 'health') {
+    console.log('🏥 Running health check...');
+    await scheduler.runHealthCheck();
+    process.exit(0);
+  } else if (command === 'analyse' || command === 'analyze') {
+    console.log('📊 Running price analysis...');
+    await scheduler.runPriceAnalysis();
+    process.exit(0);
+  } else if (command === 'scrape') {
+    const retailer = args[1] || 'sportsshoes';
+    const category = args[2] || 'running';
+    console.log(`🏃 Running scraping for ${retailer} (${category})...`);
+    await scheduler.runScrapingJob(retailer, category);
+    process.exit(0);
+  } else {
+    // Default: start the continuous scheduler
+    scheduler.start();
 
-  // Keep the process alive
-  setInterval(() => {
-    // Just keep the process running
-  }, 1000);
+    // Keep the process alive
+    setInterval(() => {
+      // Just keep the process running
+    }, 1000);
+  }
 }
 
 // Handle unhandled promise rejections

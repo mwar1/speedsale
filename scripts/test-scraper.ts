@@ -49,8 +49,10 @@ async function scrapeSportsShoes(category: string) {
     
     if (!result.success) {
       console.log('⚠️ Scraping completed with issues.');
+      process.exit(1);
     } else {
       console.log('✅ Scraping completed successfully!');
+      process.exit(0);
     }
     
   } catch (error) {
