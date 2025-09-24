@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import debounce from 'lodash.debounce';
 import ShoeImage from '@/components/ShoeImage';
 
 interface Shoe {
@@ -11,26 +10,43 @@ interface Shoe {
   model: string | null;
   slug: string | null;
   image_url: string | null;
+  price: number | null;
 }
 
 export default function ShoeSearchPage() {
   const [search, setSearch] = useState('');
   const [shoes, setShoes] = useState<Shoe[]>([]);
+  const [allShoes, setAllShoes] = useState<Shoe[]>([]);
   const [selectedShoe, setSelectedShoe] = useState<Shoe | null>(null);
   const [discount, setDiscount] = useState<number | ''>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [selectedBrand, setSelectedBrand] = useState<string>('');
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const fetchShoes = useCallback(async (query: string) => {
+    const res = await fetch(`/api/shoes/search?search=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    const fetchedShoes = data.shoes || [];
+    setAllShoes(fetchedShoes);
+    applyFilters(fetchedShoes, query, selectedBrand);
+  }, [selectedBrand]);
 
   // Fetch all shoes initially
   useEffect(() => {
     fetchShoes('');
     fetchWatchlist();
-  }, []);
+  }, [fetchShoes]);
 
-  const fetchShoes = async (query: string) => {
-    const res = await fetch(`/api/shoes/search?search=${encodeURIComponent(query)}`);
-    const data = await res.json();
-    setShoes(data.shoes || []);
+  const applyFilters = (shoesToFilter: Shoe[], searchQuery: string, brandFilter: string) => {
+    let filtered = shoesToFilter;
+
+    // Apply brand filter
+    if (brandFilter) {
+      filtered = filtered.filter(shoe => shoe.brand === brandFilter);
+    }
+
+    setShoes(filtered);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,13 +55,36 @@ export default function ShoeSearchPage() {
     debouncedFetch(value);
   };
 
+  const handleBrandChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const brand = e.target.value;
+    setSelectedBrand(brand);
+    applyFilters(allShoes, search, brand);
+  };
+
   const fetchWatchlist = async () => {
     const res = await fetch('/api/watchlist');
     const data = await res.json();
     setWatchlist(data.watchlist.map((item: { id: string }) => item.id));
   };
 
-  const debouncedFetch = debounce(fetchShoes, 300);
+  const debouncedFetch = useCallback((query: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      fetchShoes(query);
+    }, 300);
+  }, [fetchShoes]);
+
+  const formatPrice = (price: number | null): string => {
+    if (price === null || price === undefined) return 'Price unavailable';
+    return `£${price.toFixed(2)}`;
+  };
+
+  const getUniqueBrands = (): string[] => {
+    const brands = allShoes.map(shoe => shoe.brand).filter((brand): brand is string => brand !== null);
+    return [...new Set(brands)].sort();
+  };
 
   const openModal = (shoe: Shoe) => {
     setSelectedShoe(shoe);
@@ -109,7 +148,31 @@ export default function ShoeSearchPage() {
           />
         </div>
 
-        <div className="mt-6 max-h-[520px] overflow-y-auto card p-4">
+        <div className="mt-4 flex gap-3">
+          <select
+            value={selectedBrand}
+            onChange={handleBrandChange}
+            className="input flex-1"
+          >
+            <option value="">-- Filter by Brand --</option>
+            {getUniqueBrands().map(brand => (
+              <option key={brand} value={brand}>{brand}</option>
+            ))}
+          </select>
+          {selectedBrand && (
+            <button
+              onClick={() => {
+                setSelectedBrand('');
+                applyFilters(allShoes, search, '');
+              }}
+              className="btn btn-outline"
+            >
+              Clear Filter
+            </button>
+          )}
+        </div>
+
+        <div className="mt-6 max-h-[80vh] overflow-y-auto card p-4">
           <ul className="divide-y divide-gray-200">
             {shoes.map((shoe) => (
               <li key={shoe.id} className="flex items-center gap-4 py-3">
@@ -117,6 +180,7 @@ export default function ShoeSearchPage() {
                 <div className="flex-1">
                   <p className="text-sm text-gray-500">{shoe.brand}</p>
                   <p className="text-base font-medium">{shoe.model}</p>
+                  <p className="text-sm font-semibold text-gray-700">{formatPrice(shoe.price)}</p>
                 </div>
                 {watchlist.includes(shoe.id) ? (
                   <button
