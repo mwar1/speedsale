@@ -253,14 +253,69 @@ export class PlaywrightScraper extends BaseScraper {
       
       // Get price text - for SportsShoes, find the span that contains a price
       let priceText = '';
+      let originalPriceText = '';
+      
       if (this.config.id === 'sportsshoes') {
-        // Find all spans and look for one that contains a price
+        // Find all spans and look for prices
         const spans = await element.$$(this.config.selectors.productPrice);
+        const priceTexts: string[] = [];
+        const rrpTexts: string[] = [];
+        
         for (const span of spans) {
           const text = await span.textContent();
           if (text && /£[\d,]+\.?\d*/.test(text)) {
-            priceText = text;
-            break;
+            const trimmedText = text.trim();
+            
+            // Check if this looks like an RRP/original price
+            if (trimmedText.toLowerCase().includes('rrp') || 
+                trimmedText.toLowerCase().includes('was') ||
+                trimmedText.toLowerCase().includes('original')) {
+              rrpTexts.push(trimmedText);
+            } else {
+              priceTexts.push(trimmedText);
+            }
+          }
+        }
+        
+        // Also try to find RRP prices using Playwright's text-based selectors
+        try {
+          const rrpSpans = await element.$$('span');
+          for (const rrpSpan of rrpSpans) {
+            const rrpText = await rrpSpan.textContent();
+            if (rrpText && /rrp.*£[\d,]+\.?\d*/i.test(rrpText)) {
+              rrpTexts.push(rrpText.trim());
+            }
+          }
+        } catch {
+          // Ignore errors with text-based selectors
+        }
+        
+        // Current price is usually the first/main price found
+        if (priceTexts.length > 0) {
+          priceText = priceTexts[0];
+        }
+        
+        // Original price is from RRP text
+        if (rrpTexts.length > 0) {
+          originalPriceText = rrpTexts[0];
+        }
+        
+        
+        // Fallback: if we have multiple prices and no RRP text, use the logic
+        if (priceTexts.length > 1 && !originalPriceText) {
+          const prices = priceTexts.map(text => this.normalizePrice(text));
+          const sortedPrices = [...prices].sort((a, b) => a - b);
+          
+          // Current price is the lowest
+          const currentPrice = sortedPrices[0];
+          const currentPriceText = priceTexts.find(text => this.normalizePrice(text) === currentPrice);
+          priceText = currentPriceText || priceTexts[0];
+          
+          // Original price is the highest
+          if (sortedPrices.length > 1) {
+            const originalPrice = sortedPrices[sortedPrices.length - 1];
+            const originalPriceTextFound = priceTexts.find(text => this.normalizePrice(text) === originalPrice);
+            originalPriceText = originalPriceTextFound || '';
           }
         }
       } else {
@@ -287,11 +342,17 @@ export class PlaywrightScraper extends BaseScraper {
       let originalPrice: number | undefined;
       let discountPercentage: number | undefined;
       
-      if (this.config.selectors.productOriginalPrice) {
+      // For sportsshoes, we already extracted the original price text above
+      if (this.config.id === 'sportsshoes' && originalPriceText) {
+        originalPrice = this.normalizePrice(originalPriceText);
+        if (originalPrice > price) {
+          discountPercentage = ((originalPrice - price) / originalPrice) * 100;
+        }
+      } else if (this.config.selectors.productOriginalPrice) {
         const originalPriceElement = await element.$(this.config.selectors.productOriginalPrice);
-        const originalPriceText = originalPriceElement ? await originalPriceElement.textContent() : null;
-        if (originalPriceText) {
-          originalPrice = this.normalizePrice(originalPriceText);
+        const originalPriceTextFromElement = originalPriceElement ? await originalPriceElement.textContent() : null;
+        if (originalPriceTextFromElement) {
+          originalPrice = this.normalizePrice(originalPriceTextFromElement);
           if (originalPrice > price) {
             discountPercentage = ((originalPrice - price) / originalPrice) * 100;
           }
