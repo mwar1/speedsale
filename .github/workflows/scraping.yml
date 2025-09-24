@@ -15,25 +15,67 @@ jobs:
     if: github.event.schedule == '55 */12 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm install
+      
       - name: Health Check
-        run: |
-          curl -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            https://speedsale.vercel.app/api/cron/health-check
+        run: npm run scraper:scheduler health
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
   scraping:
     if: github.event.schedule == '0 */12 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+      
       - name: Scraping
-        run: |
-          curl -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            https://speedsale.vercel.app/api/cron/scrape-sportsshoes
+        run: npm run scraper sportsshoes running
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
   analyse-prices:
     if: github.event.schedule == '15 */12 * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm install
+      
       - name: Price Analysis
-        run: |
-          curl -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            https://speedsale.vercel.app/api/cron/analyse-prices
+        run: npm run scraper:scheduler analyse
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
