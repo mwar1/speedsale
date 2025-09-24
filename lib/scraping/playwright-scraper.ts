@@ -316,6 +316,10 @@ export class PlaywrightScraper extends BaseScraper {
         slug: '' // Will be set after processing
       };
 
+      // Clean the product name using centralized logic
+      const cleanName = this.cleanProductName(product.name);
+      product.name = cleanName;
+      
       // Apply custom processing if configured
       if (this.config.processProductData) {
         const processedProduct = this.config.processProductData(product, fullProductUrl);
@@ -324,7 +328,7 @@ export class PlaywrightScraper extends BaseScraper {
         return processedProduct;
       }
 
-      // Generate slug from original name if no processing
+      // Generate slug from cleaned name if no processing
       product.slug = this.generateSlug(product.name);
       return product;
     } catch (error) {

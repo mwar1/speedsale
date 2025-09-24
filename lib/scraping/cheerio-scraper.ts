@@ -152,10 +152,13 @@ export class CheerioScraper extends BaseScraper {
         ? `${this.config.baseUrl}${imageUrl}`
         : `${this.config.baseUrl}/${imageUrl}`;
 
+      // Clean the product name using centralized logic
+      const cleanName = this.cleanProductName(name);
+      
       return {
-        name: name.trim(),
+        name: cleanName,
         brand,
-        model: name.replace(brand, '').trim(),
+        model: cleanName.replace(brand, '').trim(),
         price,
         originalPrice,
         discountPercentage,

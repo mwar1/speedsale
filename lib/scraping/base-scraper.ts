@@ -26,15 +26,35 @@ export abstract class BaseScraper {
   }
 
   protected extractBrandFromName(name: string): string {
+    // Sort brands by length (longest first) to avoid substring conflicts
     const brands = [
-      'Nike', 'Adidas', 'Asics', 'New Balance', 'Puma', 'Reebok', 
-      'Saucony', 'Brooks', 'Hoka', 'On', 'Under Armour', 'Mizuno',
-      'Salomon', 'Altra', 'Topo Athletic', 'Newton', 'Skechers', 'Inov8', 'Scarpa',
+      'Under Armour', 'Topo Athletic', 'New Balance', 'Salomon', 'Skechers',
+      'Nike', 'Adidas', 'Asics', 'Puma', 'Reebok', 'Saucony', 'Brooks', 
+      'Hoka', 'On', 'Mizuno', 'Altra', 'Newton', 'Inov8', 'Scarpa', 'True Motion',
+      'Merrell', 'Scott', 'NNormal', 'La Sportiva', 'VJ Sport', 'Norda', 'The North Face',
+      'Veja', 'Vibram', 'RonHill', 'OOFOS'
     ];
     
-    const foundBrand = brands.find(brand => 
-      name.toLowerCase().includes(brand.toLowerCase())
-    );
+    // Find the longest matching brand
+    let foundBrand = '';
+    let maxLength = 0;
+    
+    for (const brand of brands) {
+      const brandLower = brand.toLowerCase();
+      const nameLower = name.toLowerCase();
+      
+      // Check if brand appears at the start of the name (most common case)
+      if (nameLower.startsWith(brandLower + ' ') && brand.length > maxLength) {
+        foundBrand = brand;
+        maxLength = brand.length;
+      }
+      // Check if brand appears anywhere in the name (fallback)
+      else if (nameLower.includes(brandLower) && brand.length > maxLength) {
+        foundBrand = brand;
+        maxLength = brand.length;
+      }
+    }
+    
     return foundBrand || 'Unknown';
   }
 
@@ -45,6 +65,42 @@ export abstract class BaseScraper {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
+  }
+
+  protected cleanProductName(name: string): string {
+    let cleanName = name || '';
+    
+    // Remove delivery prefixes
+    cleanName = cleanName
+      .replace(/^Free Premium Delivery\s+/i, '')
+      .replace(/^Free Express Delivery\s+/i, '')
+      .replace(/^Free Delivery\s+/i, '');
+    
+    // Remove everything from the first £ onwards (prices, RRP, colours, etc.)
+    cleanName = cleanName.replace(/\s+£.*$/, '');
+    
+    // Remove unwanted patterns and everything after them
+    const unwantedPatterns = [
+      // Unwanted shoe types
+      'Walking Boots', 'Walking Boot',
+      'Running Spikes', 'Throwing Shoes', 
+      'Cross Country Spikes', 'Distance Spikes', 'Multi-Event Spikes',
+      // Shoe type suffixes
+      'Men\'s Trail Running Shoes', 'Men\'s Running Shoes',
+      'Women\'s Trail Running Shoes', 'Women\'s Running Shoes',
+      'Trail Running Shoes', 'Running Shoes', 'Sprint Spikes',
+      'Men\'s Training Shoes', 'Women\'s Training Shoes', 'Training Shoes'
+    ];
+    
+    for (const pattern of unwantedPatterns) {
+      const regex = new RegExp(`\\s+${pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*$`, 'i');
+      cleanName = cleanName.replace(regex, '');
+    }
+    
+    // Remove season codes
+    cleanName = cleanName.replace(/\s+-\s*(AW|FA|SS)\d{2}\s*$/i, '');
+    
+    return cleanName.trim();
   }
 
   protected buildCategoryUrl(category?: string): string {
