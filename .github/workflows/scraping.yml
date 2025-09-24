@@ -1,0 +1,39 @@
+name: Scraping Jobs
+
+on:
+  schedule:
+    # Health check
+    - cron: '55 */12 * * *'
+    # Scraping  
+    - cron: '0 */12 * * *'
+    # Price analysis
+    - cron: '15 */12 * * *'
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  health-check:
+    if: github.event.schedule == '55 */12 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health Check
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://speedsale.vercel.app/api/cron/health-check
+
+  scraping:
+    if: github.event.schedule == '0 */12 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scraping
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://speedsale.vercel.app/api/cron/scrape-sportsshoes
+
+  analyse-prices:
+    if: github.event.schedule == '15 */12 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Price Analysis
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://speedsale.vercel.app/api/cron/analyse-prices
