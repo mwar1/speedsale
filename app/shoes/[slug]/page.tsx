@@ -14,6 +14,14 @@ interface User {
   email: string;
 }
 
+interface PriceData {
+  price: number | null;
+  original_price: number | null;
+  discount_percentage: number | null;
+  date: string;
+  retailer_id: string | null;
+}
+
 interface Shoe {
   id: string;
   brand: string | null;
@@ -23,9 +31,11 @@ interface Shoe {
   description: string | null;
   category: string | null;
   gender: string | null;
-  price: number | null;
+  price: number | null; // RRP from shoes table
   created_at: string;
   last_scraped: string | null;
+  latestPrice: PriceData | null;
+  priceHistory: PriceData[];
 }
 
 // Helper function to format date as "1st Jan 2024"
@@ -57,6 +67,9 @@ export default function ShoePage() {
   const [shoe, setShoe] = useState<Shoe | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
   const [isLoadingShoe, setIsLoadingShoe] = useState<boolean>(true);
+  const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [discount, setDiscount] = useState<number | ''>('');
 
   // Fetch user data
   useEffect(() => {
@@ -82,6 +95,23 @@ export default function ShoePage() {
     fetchUser();
   }, []);
 
+  // Fetch watchlist data
+  useEffect(() => {
+    async function fetchWatchlist() {
+      try {
+        const res = await fetch('/api/watchlist');
+        if (res.ok) {
+          const data = await res.json();
+          setWatchlist(data.watchlist.map((item: { id: string }) => item.id));
+        }
+      } catch (error) {
+        console.error('Failed to fetch watchlist:', error);
+      }
+    }
+
+    fetchWatchlist();
+  }, []);
+
   // Fetch shoe data
   useEffect(() => {
     async function fetchShoe() {
@@ -102,6 +132,54 @@ export default function ShoePage() {
       fetchShoe();
     }
   }, [slug]);
+
+  const openModal = () => {
+    setDiscount('');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setDiscount('');
+  };
+
+  const addToWatchlist = async () => {
+    if (!shoe || discount === '') return;
+
+    await fetch('/api/watchlist/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shoe_id: shoe.id,
+        discount: discount
+      }),
+    });
+
+    closeModal();
+    // Refresh watchlist
+    const res = await fetch('/api/watchlist');
+    if (res.ok) {
+      const data = await res.json();
+      setWatchlist(data.watchlist.map((item: { id: string }) => item.id));
+    }
+  };
+
+  const removeFromWatchlist = async () => {
+    if (!shoe) return;
+
+    await fetch('/api/watchlist/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shoe_id: shoe.id }),
+    });
+
+    // Refresh watchlist
+    const res = await fetch('/api/watchlist');
+    if (res.ok) {
+      const data = await res.json();
+      setWatchlist(data.watchlist.map((item: { id: string }) => item.id));
+    }
+  };
 
   if (isLoadingUser || isLoadingShoe) {
     return (
@@ -147,21 +225,72 @@ export default function ShoePage() {
                 )}
               </div>
 
-              {shoe.price && (
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              {/* Current Price and Discount */}
+              {shoe.latestPrice && (
+                <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Current Price</span>
-                    <span className="text-2xl font-bold text-green-600">£{shoe.price.toFixed(2)}</span>
+                    <div>
+                      <span className="text-sm text-gray-600">Current Price</span>
+                      <div className="text-2xl font-bold text-green-600">£{shoe.latestPrice.price?.toFixed(2) || 'N/A'}</div>
+                    </div>
+                    {shoe.latestPrice.discount_percentage && shoe.latestPrice.discount_percentage > 0 && (
+                      <div className="text-right">
+                        <div className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                          -{shoe.latestPrice.discount_percentage.toFixed(0)}% OFF
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
+              {/* RRP */}
               {shoe.price && (
-                <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">RRP</span>
-                    <span className="text-xl font-semibold text-blue-600">£{(shoe.price * 1.2).toFixed(2)}</span>
+                    <span className="text-xl font-semibold text-blue-600">£{shoe.price.toFixed(2)}</span>
                   </div>
+                </div>
+              )}
+
+              {/* Price Comparison - Only show if discounted */}
+              {shoe.latestPrice && shoe.price && shoe.latestPrice.price && shoe.latestPrice.price < shoe.price && (
+                <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">You Save</span>
+                    <div className="text-right">
+                      <div className="text-lg font-semibold text-green-600">
+                        £{(shoe.price - shoe.latestPrice.price).toFixed(2)}
+                      </div>
+                      {shoe.latestPrice.discount_percentage && (
+                        <div className="text-sm text-green-700">
+                          ({shoe.latestPrice.discount_percentage.toFixed(0)}% off)
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Watchlist Button */}
+              {user && (
+                <div className="mb-6">
+                  {watchlist.includes(shoe.id) ? (
+                    <button
+                      className="btn btn-danger w-full"
+                      onClick={removeFromWatchlist}
+                    >
+                      Remove from Watchlist
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-primary w-full"
+                      onClick={openModal}
+                    >
+                      Add to Watchlist
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -169,6 +298,30 @@ export default function ShoePage() {
                 <div className="mb-6">
                   <h2 className="text-lg font-medium mb-3">Description</h2>
                   <p className="text-gray-700 leading-relaxed">{shoe.description}</p>
+                </div>
+              )}
+
+              {/* Price History */}
+              {shoe.priceHistory && shoe.priceHistory.length > 0 && (
+                <div className="mb-6">
+                  <h2 className="text-lg font-medium mb-3">Price History</h2>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {shoe.priceHistory.slice(0, 10).map((price, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">£{price.price?.toFixed(2) || 'N/A'}</span>
+                          {price.discount_percentage && price.discount_percentage > 0 && (
+                            <span className="text-xs bg-red-100 text-red-800 px-1.5 py-0.5 rounded">
+                              -{price.discount_percentage.toFixed(0)}%
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-gray-500 text-xs">
+                          {formatDate(price.date)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -207,6 +360,44 @@ export default function ShoePage() {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md card p-6 shadow-lg">
+            <h2 className="text-lg font-semibold">Add {shoe?.brand} {shoe?.model} to Watchlist</h2>
+            <label className="mt-4 block text-sm text-gray-700">
+              Discount % you are looking for
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={discount}
+                onChange={(e) => setDiscount(Number(e.target.value))}
+                className="mt-2 input"
+              />
+            </label>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                className="btn btn-outline"
+                onClick={closeModal}
+              >
+                Cancel
+              </button>
+              <button
+                className={`btn btn-primary ${
+                  discount === '' ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                onClick={addToWatchlist}
+                disabled={discount === ''}
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

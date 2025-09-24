@@ -180,23 +180,33 @@ export default function ShoeSearchPage() {
                 <div className="flex-1">
                   <p className="text-sm text-gray-500">{shoe.brand}</p>
                   <p className="text-base font-medium">{shoe.model}</p>
-                  <p className="text-sm font-semibold text-gray-700">{formatPrice(shoe.price)}</p>
+                  <p className="text-sm font-semibold text-gray-700">{"RRP: " + formatPrice(shoe.price)}</p>
                 </div>
-                {watchlist.includes(shoe.id) ? (
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => removeFromWatchlist(shoe.id)}
-                  >
-                    Remove
-                  </button>
-                ) : (
-                  <button
-                    className="btn btn-primary btn-sm"
-                    onClick={() => openModal(shoe)}
-                  >
-                    Add
-                  </button>
-                )}
+                <div className="flex gap-2">
+                  {shoe.slug && (
+                    <Link
+                      href={`/shoes/${shoe.slug}`}
+                      className="btn btn-outline btn-sm"
+                    >
+                      View
+                    </Link>
+                  )}
+                  {watchlist.includes(shoe.id) ? (
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => removeFromWatchlist(shoe.id)}
+                    >
+                      Remove
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => openModal(shoe)}
+                    >
+                      Add
+                    </button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
