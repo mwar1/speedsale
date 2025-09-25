@@ -84,7 +84,7 @@ export abstract class BaseScraper {
       // Unwanted shoe types
       'Walking Boots', 'Walking Boot',
       'Running Spikes', 'Throwing Shoes', 
-      'Cross Country Spikes', 'Distance Spikes', 'Multi-Event Spikes',
+      'Cross Country Spikes', 'Distance Spikes', 'Multi-Event Spikes', 'Mid-Distance Spikes', 'Long-Distance Spikes',
       // Shoe type suffixes
       'Men\'s Trail Running Shoes', 'Men\'s Running Shoes',
       'Women\'s Trail Running Shoes', 'Women\'s Running Shoes',

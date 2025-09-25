@@ -121,56 +121,28 @@ export class ScraperManager {
       existingShoes?.map(shoe => [shoe.slug, shoe.id]) || []
     );
 
-    // Batch 2: Get today's prices for all shoes in one query
+    // Batch 2: Get today's cheapest prices for all shoes in one query
     const today = new Date().toISOString().split('T')[0];
     const { data: todayPrices } = await supabase
       .from('prices')
       .select('shoe_id, price, id')
       .eq('retailer_id', retailerId)
       .gte('date', `${today}T00:00:00.000Z`)
-      .lt('date', `${today}T23:59:59.999Z`);
+      .lt('date', `${today}T23:59:59.999Z`)
+      .order('shoe_id, price', { ascending: true }); // Order by shoe_id first, then price
 
-    const todayPricesMap = new Map(
-      todayPrices?.map(price => [price.shoe_id, { price: price.price, id: price.id }]) || []
-    );
+    // Create a map with only the cheapest price per shoe
+    const todayPricesMap = new Map<string, { price: number; id: string }>();
+    if (todayPrices) {
+      for (const price of todayPrices) {
+        if (price.shoe_id && price.price !== null && !todayPricesMap.has(price.shoe_id)) {
+          // Only add the first (cheapest) price for each shoe
+          todayPricesMap.set(price.shoe_id, { price: price.price, id: price.id });
+        }
+      }
+    }
 
-    // Prepare batch operations
-    const shoesToInsert: Array<{
-      brand: string;
-      model: string;
-      slug: string;
-      price: number;
-      description?: string;
-      image_url: string;
-      category?: string;
-      gender?: string;
-      last_scraped: string;
-    }> = [];
-    const shoesToUpdate: Array<{
-      id: string;
-      price: number;
-      last_scraped: string;
-    }> = [];
-    const pricesToInsert: Array<{
-      shoe_id: string;
-      retailer_id: string;
-      price: number;
-      original_price?: number;
-      discount_percentage?: number;
-      in_stock: boolean;
-      product_url: string;
-      date: string;
-    }> = [];
-    const pricesToUpdate: Array<{
-      id: string;
-      price: number;
-      original_price?: number;
-      discount_percentage?: number;
-      in_stock: boolean;
-      product_url: string;
-      date: string;
-    }> = [];
-    const newShoeProducts: ScrapedShoe[] = []; // Track products for new shoes
+    // Process each product individually to ensure proper price handling
     const processedSlugs = new Set<string>(); // Track processed shoes in this session
 
     for (const product of products) {
@@ -184,20 +156,94 @@ export class ScraperManager {
         let shoeId: string;
         
         if (existingShoesMap.has(product.slug)) {
-          // Shoe exists, prepare for update
+          // Shoe exists, update it
           shoeId = existingShoesMap.get(product.slug)!;
-          shoesToUpdate.push({
-            id: shoeId,
-            price: product.price,
-            last_scraped: new Date().toISOString()
-          });
-
-          // Handle price logic for existing shoes
-          const todayPrice = todayPricesMap.get(shoeId);
           
-          if (!todayPrice) {
-            // No price entry for today, prepare to create one
-            pricesToInsert.push({
+          await supabase
+            .from('shoes')
+            .update({
+              price: product.originalPrice || product.price, // Use RRP if available, fallback to current price
+              last_scraped: new Date().toISOString()
+            })
+            .eq('id', shoeId);
+
+          // Handle price with proper duplicate prevention and cheapest price logic
+          const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+          
+          // Get existing prices for this shoe/retailer - use simpler date filtering
+          const { data: existingPrices } = await supabase
+            .from('prices')
+            .select('id, price, date')
+            .eq('shoe_id', shoeId)
+            .eq('retailer_id', retailerId)
+            .order('price', { ascending: true })
+            .limit(10); // Get multiple to filter by date in code
+
+          // Filter to only today's prices
+          const todayPrices = existingPrices?.filter(price => 
+            price.date && price.date.startsWith(today)
+          ) || [];
+
+          const existingPrice = todayPrices.length > 0 ? todayPrices[0] : null;
+
+          if (!existingPrice) {
+            // No price for today, insert new one
+            await supabase
+              .from('prices')
+              .insert({
+                shoe_id: shoeId,
+                retailer_id: retailerId,
+                price: product.price,
+                original_price: product.originalPrice,
+                discount_percentage: product.discountPercentage,
+                in_stock: product.inStock,
+                product_url: product.productUrl,
+                date: new Date().toISOString()
+              });
+          } else if (existingPrice.price && product.price < existingPrice.price) {
+            // Found a lower price, update the existing entry
+            await supabase
+              .from('prices')
+              .update({
+                price: product.price,
+                original_price: product.originalPrice,
+                discount_percentage: product.discountPercentage,
+                in_stock: product.inStock,
+                product_url: product.productUrl,
+                date: new Date().toISOString()
+              })
+              .eq('id', existingPrice.id);
+          }
+          // If current price is higher, do nothing (keep cheaper price)
+        } else {
+          // Shoe doesn't exist, create it
+          const { data: newShoe, error: shoeError } = await supabase
+            .from('shoes')
+            .insert({
+              brand: product.brand,
+              model: product.model,
+              slug: product.slug,
+              price: product.originalPrice || product.price, // Use RRP if available, fallback to current price
+              description: product.description,
+              image_url: product.imageUrl,
+              category: product.category,
+              gender: product.gender,
+              last_scraped: new Date().toISOString()
+            })
+            .select('id')
+            .single();
+
+          if (shoeError) {
+            console.error('Error creating shoe:', shoeError);
+            continue;
+          }
+          
+          shoeId = newShoe.id;
+          
+          // Create price entry for new shoe
+          await supabase
+            .from('prices')
+            .insert({
               shoe_id: shoeId,
               retailer_id: retailerId,
               price: product.price,
@@ -207,33 +253,6 @@ export class ScraperManager {
               product_url: product.productUrl,
               date: new Date().toISOString()
             });
-          } else if (todayPrice.price && product.price < todayPrice.price) {
-            // Found a lower price today, prepare to update
-            pricesToUpdate.push({
-              id: todayPrice.id,
-              price: product.price,
-              original_price: product.originalPrice,
-              discount_percentage: product.discountPercentage,
-              in_stock: product.inStock,
-              product_url: product.productUrl,
-              date: new Date().toISOString()
-            });
-          }
-        } else {
-          // Shoe doesn't exist, prepare for insert
-          const newShoe = {
-            brand: product.brand,
-            model: product.model,
-            slug: product.slug,
-            price: product.price,
-            description: product.description,
-            image_url: product.imageUrl,
-            category: product.category,
-            gender: product.gender,
-            last_scraped: new Date().toISOString()
-          };
-          shoesToInsert.push(newShoe);
-          newShoeProducts.push(product); // Track for later price processing
         }
 
         savedCount++;
@@ -246,79 +265,6 @@ export class ScraperManager {
       saveBar.increment(1, { saved: savedCount });
     }
 
-    // Execute batch operations
-    try {
-      // Update existing shoes
-      if (shoesToUpdate.length > 0) {
-        for (const shoeUpdate of shoesToUpdate) {
-          await supabase
-            .from('shoes')
-            .update({
-              price: shoeUpdate.price,
-              last_scraped: shoeUpdate.last_scraped
-            })
-            .eq('id', shoeUpdate.id);
-        }
-      }
-
-      // Insert new shoes
-      if (shoesToInsert.length > 0) {
-        const { data: newShoes, error: insertError } = await supabase
-          .from('shoes')
-          .insert(shoesToInsert)
-          .select('id, slug');
-
-        if (insertError) {
-          console.error('Error inserting shoes:', insertError);
-        } else if (newShoes) {
-          // Create mapping for new shoes
-          const newShoesMap = new Map(newShoes.map(shoe => [shoe.slug, shoe.id]));
-          
-          // Process prices for new shoes
-          for (const product of newShoeProducts) {
-            const shoeId = newShoesMap.get(product.slug);
-            if (shoeId) {
-              // For new shoes, always create a price entry (no existing price to compare)
-              pricesToInsert.push({
-                shoe_id: shoeId,
-                retailer_id: retailerId,
-                price: product.price,
-                original_price: product.originalPrice,
-                discount_percentage: product.discountPercentage,
-                in_stock: product.inStock,
-                product_url: product.productUrl,
-                date: new Date().toISOString()
-              });
-            }
-          }
-        }
-      }
-
-      // Insert new prices
-      if (pricesToInsert.length > 0) {
-        await supabase.from('prices').insert(pricesToInsert);
-      }
-
-      // Update existing prices
-      if (pricesToUpdate.length > 0) {
-        for (const priceUpdate of pricesToUpdate) {
-          await supabase
-            .from('prices')
-            .update({
-              price: priceUpdate.price,
-              original_price: priceUpdate.original_price,
-              discount_percentage: priceUpdate.discount_percentage,
-              in_stock: priceUpdate.in_stock,
-              product_url: priceUpdate.product_url,
-              date: priceUpdate.date
-            })
-            .eq('id', priceUpdate.id);
-        }
-      }
-
-    } catch (error) {
-      console.error('Error executing batch operations:', error);
-    }
 
     saveBar.stop();    
     return savedCount;
