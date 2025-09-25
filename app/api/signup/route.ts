@@ -23,13 +23,27 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert user into DB
-    const { error } = await supabase
+    const { data: user, error } = await supabase
       .from('users')
-      .insert([{ email, fname: firstName, sname: surname, password: hashedPassword }]);
+      .insert([{ email, fname: firstName, sname: surname, password: hashedPassword }])
+      .select('id')
+      .single();
+
+    // Insert row into preferences table
+    const { error: preferences_error } = await supabase
+      .from('user_preferences')
+      .insert([{ user_id: user?.id }]);
 
     if (error) {
       return NextResponse.json(
         { error: error.message },
+        { status: 500 }
+      );
+    }
+
+    if (preferences_error) {
+      return NextResponse.json(
+        { error: preferences_error.message },
         { status: 500 }
       );
     }
