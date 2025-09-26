@@ -19,6 +19,7 @@ interface Shoe {
   model: string | null;
   slug: string | null;
   image_url: string | null;
+  discount: number | null;
 }
 
 export default function DashboardPage() {
@@ -171,6 +172,7 @@ export default function DashboardPage() {
                   <div className="flex-1">
                     <p className="text-sm text-gray-500">{item.brand}</p>
                     <p className="mt-0.5 text-base font-semibold tracking-tight">{item.model}</p>
+                    <p className="mt-0.5 text-sm text-gray-500">Discount: {item.discount}% off</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">

@@ -14,7 +14,7 @@ export async function GET() {
 
   const { data: watchlist, error: watchlist_error } = await supabase
     .from('watchlists')
-    .select('shoe_id')
+    .select('shoe_id, discount')
     .eq('user_id', user.id);
 
   if (watchlist_error) throw watchlist_error;
@@ -31,5 +31,16 @@ export async function GET() {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  return NextResponse.json({ watchlist: shoes });
+
+  const discountMap = new Map(
+    watchlist.map(row => [row.shoe_id, row.discount])
+  );
+
+  // Add desired discount to each shoe
+  const shoesWithDiscount = shoes.map(shoe => ({
+    ...shoe,
+    discount: discountMap.get(shoe.id) || null
+  }));
+
+  return NextResponse.json({ watchlist: shoesWithDiscount });
 }
