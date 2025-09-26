@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "scraper": "tsx scripts/test-scraper.ts",
-    "scraper:scheduler": "tsx scripts/scheduler.ts",
+    "scraper:health": "tsx scripts/health.ts",
+    "scraper:analyse": "tsx scripts/analyse.ts",
+    "scraper:scrape": "tsx scripts/scrape.ts",
     "test:email": "tsx scripts/test-email.ts"
   },
   "dependencies": {
@@ -44,6 +46,7 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "autoprefixer": "^10.4.21",
+    "dotenv-cli": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
     "postcss": "^8.5.6",
