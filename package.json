@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "scraper": "tsx scripts/test-scraper.ts",
-    "scraper:scheduler": "tsx scripts/scheduler.ts"
+    "scraper:scheduler": "tsx scripts/scheduler.ts",
+    "test:email": "tsx scripts/test-email.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.55.0",
@@ -24,6 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "lodash.debounce": "^4.0.8",
+    "mailgun.js": "^12.1.0",
     "next": "^15.5.3",
     "node-cron": "^3.0.3",
     "playwright": "^1.40.0",
