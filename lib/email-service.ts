@@ -35,9 +35,10 @@ interface WelcomeEmailData {
     fname: string | null;
     sname: string | null;
   };
-  dashboard_url: string;
-  profile_url: string;
 }
+
+const dashboard_url = 'https://speedsale.vercel.app/dashboard';
+const profile_url = 'https://speedsale.vercel.app/profile';
 
 class EmailService {
   private mailgun: {
@@ -165,8 +166,8 @@ class EmailService {
       const variables = {
         ...data,
         user: data.user,
-        dashboard_url: data.dashboard_url,
-        profile_url: data.profile_url
+        dashboard_url: dashboard_url,
+        profile_url: profile_url
       };
 
       const html = this.replaceTemplateVariables(template, variables);

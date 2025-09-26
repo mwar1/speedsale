@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { supabase } from '@/lib/db'; // adjust your import path
+import { supabase } from '@/lib/db';
+import { EmailService } from '@/lib/email-service';
 
 export async function POST(req: NextRequest) {
   if (req.method !== 'POST') {
@@ -48,8 +49,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Send welcome email
+    try {
+      const emailService = new EmailService();
+      const welcomeData = {
+        user: {
+          id: user.id,
+          email: email,
+          fname: firstName,
+          sname: surname,
+        },
+
+      };
+      await emailService.sendWelcomeEmail(welcomeData);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+    }
+
     return NextResponse.json(
-      { message: 'Success' },
+      { message: 'Success' , user: user.id },
       { status: 201 }
     );
   } catch (err) {
