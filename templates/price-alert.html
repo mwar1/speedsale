@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Price Alert - {{shoe.brand}} {{shoe.model}}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .alert-badge {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .shoe-info {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+        .shoe-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        .shoe-details h2 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            color: #2c3e50;
+        }
+        .shoe-details p {
+            margin: 5px 0;
+            color: #6c757d;
+            font-size: 16px;
+        }
+        .price-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .current-price {
+            font-size: 36px;
+            font-weight: 700;
+            color: #059669;
+            margin: 0;
+        }
+        .original-price {
+            font-size: 20px;
+            color: #6c757d;
+            text-decoration: line-through;
+            margin: 5px 0;
+        }
+        .discount-info {
+            font-size: 18px;
+            color: #dc2626;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #059669, #0d9488);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            transition: transform 0.2s ease;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+            margin: 5px 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .unsubscribe {
+            margin-top: 15px;
+        }
+        .unsubscribe a {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        @media (max-width: 600px) {
+            .shoe-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            .shoe-image {
+                width: 100px;
+                height: 100px;
+            }
+            .current-price {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SpeedSale</h1>
+            <p>Price Alert Notification</p>
+        </div>
+        
+        <div class="content">
+            <div class="alert-badge">🚨 PRICE ALERT</div>
+            
+            <div class="shoe-info">
+                <img src="{{shoe.image_url}}" alt="{{shoe.brand}} {{shoe.model}}" class="shoe-image" onerror="this.src='https://via.placeholder.com/120x120?text=No+Image'">
+                <div class="shoe-details">
+                    <h2>{{shoe.brand}} {{shoe.model}}</h2>
+                    <p><strong>Category:</strong> {{shoe.category}}</p>
+                    <p><strong>Gender:</strong> {{shoe.gender}}</p>
+                    <p><strong>Size:</strong> {{size}}</p>
+                    <p><strong>Colour:</strong> {{color}}</p>
+                </div>
+            </div>
+            
+            <div class="price-section">
+                <p class="current-price">£{{current_price}}</p>
+                <p class="original-price">Was £{{original_price}}</p>
+                <p class="discount-info">You're saving {{discount_percentage}}%!</p>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="{{product_url}}" class="cta-button" target="_blank" rel="noopener noreferrer">View Deal Now</a>
+            </div>
+            
+            <p style="color: #6c757d; font-size: 14px; margin-top: 30px;">
+                This alert was triggered because the price dropped by {{discount_percentage}}% or more, 
+                meeting your {{user_discount_threshold}}% discount threshold.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>SpeedSale</strong> - Never miss a great deal on running shoes</p>
+            <p>You're receiving this because you added this shoe to your watchlist.</p>
+            <div class="unsubscribe">
+                <a href="{{unsubscribe_url}}" target="_blank" rel="noopener noreferrer">Unsubscribe from price alerts</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

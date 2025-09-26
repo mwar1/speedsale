@@ -130,6 +130,9 @@ export default function ProfilePage() {
           defaultSurname={user.sname}
           setUser={setUser}
         />
+
+        {/* Email Preferences Section */}
+        <EmailPreferences userId={user.id} />
       </div>
     </main>
   );
@@ -380,5 +383,167 @@ function PasswordModal({ onClose }: PasswordModalProps) {
         </form>
       </div>
     </div>
+  );
+}
+
+type EmailPreferencesProps = {
+  userId: string;
+};
+
+function EmailPreferences({}: EmailPreferencesProps) {
+  const [emailFrequency, setEmailFrequency] = useState<string>('immediate');
+  const [emailEnabled, setEmailEnabled] = useState<boolean>(true);
+  const [originalEmailFrequency, setOriginalEmailFrequency] = useState<string>('immediate');
+  const [originalEmailEnabled, setOriginalEmailEnabled] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+
+  // Fetch user preferences on mount
+  useEffect(() => {
+    async function fetchPreferences() {
+      try {
+        const res = await fetch('/api/user/preferences', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const frequency = data.email_frequency || 'immediate';
+          const enabled = data.email_enabled !== false;
+          
+          setEmailFrequency(frequency);
+          setEmailEnabled(enabled);
+          setOriginalEmailFrequency(frequency);
+          setOriginalEmailEnabled(enabled);
+        }
+      } catch (err) {
+        console.error('Error fetching preferences:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchPreferences();
+  }, []);
+
+  // Check if changes have been made
+  const hasChanges = emailFrequency !== originalEmailFrequency || emailEnabled !== originalEmailEnabled;
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/user/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email_frequency: emailFrequency,
+          email_enabled: emailEnabled,
+        }),
+        cache: 'no-store',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Failed to save preferences');
+      } else {
+        // Update original values after successful save
+        setOriginalEmailFrequency(emailFrequency);
+        setOriginalEmailEnabled(emailEnabled);
+      }
+    } catch {
+      setError('Failed to save preferences');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <section className="mt-8 rounded-2xl bg-white px-6 py-6 shadow-lg">
+        <div className="flex items-center justify-center py-8">
+          <LoadingSpinner text="Loading email preferences..." />
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-8 rounded-2xl bg-white px-6 py-6 shadow-lg">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-medium text-black">Email Preferences</h2>
+          <p className="text-sm text-gray-700">Control how often you receive price alerts</p>
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-6">
+        {/* Email Enabled Toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            <label className="text-sm font-medium text-black">Email Notifications</label>
+            <p className="text-xs text-gray-600">Receive price alerts for your watchlist</p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={emailEnabled}
+              onChange={(e) => setEmailEnabled(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+        </div>
+
+        {/* Email Frequency Selection */}
+        {emailEnabled && (
+          <div>
+            <label className="text-sm font-medium text-black">Email Frequency</label>
+            <p className="text-xs text-gray-600 mb-3">How often you want to receive price alerts</p>
+            <div className="space-y-3">
+              {[
+                { value: 'immediate', label: 'Immediate', description: 'Get alerts as soon as prices drop' },
+                { value: 'daily', label: 'Daily', description: 'Receive a daily summary of price changes' },
+                { value: 'weekly', label: 'Weekly', description: 'Get a weekly digest of all price changes' }
+              ].map((option) => (
+                <label key={option.value} className="flex items-start space-x-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="emailFrequency"
+                    value={option.value}
+                    checked={emailFrequency === option.value}
+                    onChange={(e) => setEmailFrequency(e.target.value)}
+                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-black">{option.label}</div>
+                    <div className="text-xs text-gray-600">{option.description}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Save Button */}
+        <div className="flex items-center justify-end gap-2 pt-4 border-t">
+          <button
+            onClick={handleSave}
+            disabled={isSaving || !hasChanges}
+            className={`btn ${hasChanges ? 'btn-primary' : 'btn-outline opacity-50 cursor-not-allowed'} ${isSaving ? 'opacity-60 cursor-not-allowed' : ''}`}
+          >
+            {isSaving ? 'Saving...' : 'Save Preferences'}
+          </button>
+        </div>
+
+        {error && (
+          <div className="text-sm text-red-600 text-center">{error}</div>
+        )}
+      </div>
+    </section>
   );
 }

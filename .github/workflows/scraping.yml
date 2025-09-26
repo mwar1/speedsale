@@ -28,7 +28,7 @@ jobs:
         run: npm install
       
       - name: Health Check
-        run: npm run scraper:scheduler health
+        run: npm run scraper:health
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -53,7 +53,7 @@ jobs:
         run: npx playwright install chromium
       
       - name: Scraping
-        run: npm run scraper sportsshoes running
+        run: npm run scraper:scrape sportsshoes running
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -75,7 +75,10 @@ jobs:
         run: npm install
       
       - name: Price Analysis
-        run: npm run scraper:scheduler analyse
+        run: npm run scraper:analyse
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+          MAILGUN_DOMAIN: ${{ secrets.MAILGUN_DOMAIN }}
+          MAILGUN_FROM_EMAIL: ${{ secrets.MAILGUN_FROM_EMAIL }}
