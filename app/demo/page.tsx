@@ -1,13 +1,9 @@
 'use client';
 
-import Header from '@/components/Header';
+import PageLayout from '@/components/PageLayout';
 import ShoeImage from '@/components/ShoeImage';
 
 export default function DemoPage() {
-  const user = {
-    fname: "Demo",
-    sname: "User"
-  };
 
   // Placeholder shoe data
   const shoes = [
@@ -46,7 +42,7 @@ export default function DemoPage() {
   };
 
   return (
-    <main className="min-h-screen">
+    <PageLayout>
       {/* Demo Notice */}
       <div className="bg-blue-50 border-b border-blue-200">
         <div className="container-max py-3">
@@ -55,8 +51,6 @@ export default function DemoPage() {
           </p>
         </div>
       </div>
-
-      <Header user={user} isDemo={true} />
 
       {/* Content */}
       <section className="container-max py-8">
@@ -102,6 +96,6 @@ export default function DemoPage() {
             ))}
           </ul>
       </section>
-    </main>
+    </PageLayout>
   );
 }

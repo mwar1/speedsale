@@ -1,73 +1,25 @@
 // app/profile/page.tsx
 'use client';
 
-import { SetStateAction, useEffect, Dispatch, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import LogoutButton from '@/components/LogoutButton';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import Link from 'next/link';
-
-interface User {
-  id: string;
-  fname: string;
-  sname: string;
-  email: string;
-  premium: boolean;
-  created_at: string;
-  profileImageUrl: string | null;
-}
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
-  
-  useEffect(() => {
-    async function fetchUser() {
-      const res = await fetch('/api/user', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        cache: 'no-store',
-      });
+  const { user } = useAuth();
 
-      const data = await res.json();
-      setUser(data.user);
-      setIsLoadingUser(false);
-    }
-
-    fetchUser();
-  }, []);
-
-  if (isLoadingUser) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner text="Loading your profile…" />
-      </main>
-    );
-  }
-
-  if (!user) {
-    return (
-      <main className="min-h-screen flex items-center justify-center p-6">
-        <div className="w-full max-w-md card p-8">
-          <h1 className="text-2xl font-semibold tracking-tight">You are not logged in</h1>
-          <p className="mt-2 text-sm text-gray-600">Please sign in to view your personalized dashboard and watchlist.</p>
-          <Link
-            href="/login"
-            className="mt-6 btn btn-primary w-full"
-          >
-            Login
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  if (!user) return null; // AuthenticatedLayout will handle the loading/auth states
 
   const initials = `${user.fname[0]}${user.sname[0]}`.toUpperCase();
 
-  const memberSince = user ? new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' }) : '—';
+  const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' }) : '—';
 
   return (
-    <main className="min-h-screen w-full">
-      {/* Top status banner */}
+    <AuthenticatedLayout requireAuth={true}>
+      <div className="w-full">
+        {/* Top status banner */}
       <div className={`w-full ${user.premium ? 'bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500' : 'bg-gray-200'} `}>
         <div className="mx-auto max-w-4xl px-6 py-3">
           <div className="flex items-center justify-between gap-3">
@@ -82,12 +34,12 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+      </div>
       <div className="mx-auto w-full max-w-4xl px-6 py-8">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold tracking-tight text-black">
             Your Profile
           </h1>
-          <a href="/dashboard" className="btn btn-outline">Back</a>
         </div>
 
         {/* Combined header card */}
@@ -128,13 +80,12 @@ export default function ProfilePage() {
           defaultEmail={user.email}
           defaultFirstName={user.fname}
           defaultSurname={user.sname}
-          setUser={setUser}
         />
 
         {/* Email Preferences Section */}
         <EmailPreferences userId={user.id} />
       </div>
-    </main>
+    </AuthenticatedLayout>
   );
 }
 
@@ -142,10 +93,9 @@ type EditableDetailsProps = {
   defaultFirstName: string;
   defaultSurname: string;
   defaultEmail: string;
-  setUser: Dispatch<SetStateAction<User | null>>;
 };
 
-function EditableDetails({ defaultFirstName, defaultSurname, defaultEmail, setUser }: EditableDetailsProps) {
+function EditableDetails({ defaultFirstName, defaultSurname, defaultEmail }: EditableDetailsProps) {
   const [firstName, setFirstName] = useState(defaultFirstName);
   const [surname, setSurname] = useState(defaultSurname);
   const [email, setEmail] = useState(defaultEmail);
@@ -174,8 +124,7 @@ function EditableDetails({ defaultFirstName, defaultSurname, defaultEmail, setUs
 
     const updatedUser = await res.json();
     if (res.ok) {
-      setUser(updatedUser.user[0]);
-
+      // User data will be refreshed by useAuth hook
       setIsEditing(false);
     }
     

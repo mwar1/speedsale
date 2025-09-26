@@ -1,17 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Header from '@/components/Header';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import PageLayout from '@/components/PageLayout';
+import { useAuth } from '@/hooks/useAuth';
 import Link from "next/link";
 import ShoeImage from '@/components/ShoeImage';
-
-interface User {
-  id: string;
-  fname: string;
-  sname: string;
-  email: string;
-}
 
 interface Shoe {
   id: string;
@@ -23,35 +16,11 @@ interface Shoe {
 }
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const [shoes, setShoes] = useState<Shoe[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
   const [isLoadingWatchlist, setIsLoadingWatchlist] = useState<boolean>(false);
 
-  // Fetch user
-  useEffect(() => {
-    async function fetchUser() {
-      const res = await fetch('/api/user', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        cache: 'no-store',
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || 'Failed to fetch user');
-        setIsLoadingUser(false);
-        return;
-      }
-
-      const data = await res.json();
-      setUser(data.user);
-      setIsLoadingUser(false);
-    }
-
-    fetchUser();
-  }, []);
 
   async function fetchWatchlist() {
     setIsLoadingWatchlist(true);
@@ -89,35 +58,9 @@ export default function DashboardPage() {
     fetchWatchlist();
   };
 
-  if (isLoadingUser) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner text="Loading your dashboard…" />
-      </main>
-    );
-  }
-
-  if (!user) {
-    return (
-      <main className="min-h-screen flex items-center justify-center p-6">
-        <div className="w-full max-w-md card p-8">
-          <h1 className="text-2xl font-semibold tracking-tight">You are not logged in</h1>
-          <p className="mt-2 text-sm text-gray-600">Please sign in to view your personalized dashboard and watchlist.</p>
-          <Link
-            href="/login"
-            className="mt-6 btn btn-primary w-full"
-          >
-            Login
-          </Link>
-        </div>
-      </main>
-    );
-  }
 
   return (
-    <main className="min-h-screen">
-      <Header user={user} />
-
+    <PageLayout>
       {/* Content */}
       <section className="container-max py-8">
         <div className="mb-6 flex items-center justify-between">
@@ -194,6 +137,6 @@ export default function DashboardPage() {
           </ul>
         )}
       </section>
-    </main>
+    </PageLayout>
   );
 }

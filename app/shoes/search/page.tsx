@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import ShoeImage from '@/components/ShoeImage';
+import PageLayout from '@/components/PageLayout';
 
 interface Shoe {
   id: string;
@@ -127,16 +128,9 @@ export default function ShoeSearchPage() {
   };
 
   return (
-    <main className="min-h-screen p-6">
-      <div className="mx-auto max-w-3xl">
-        <div className="flex items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="btn btn-outline"
-          >
-            Back
-          </Link>
-        </div>
+    <PageLayout>
+      <div className="p-6">
+        <div className="mx-auto max-w-3xl">
 
         <div className="mt-6">
           <input
@@ -253,6 +247,7 @@ export default function ShoeSearchPage() {
           </div>
         </div>
       )}
-    </main>
+      </div>
+    </PageLayout>
   );
 }

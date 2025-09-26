@@ -3,16 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import ShoeImage from '@/components/ShoeImage';
-import Header from '@/components/Header';
+import PageLayout from '@/components/PageLayout';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import Link from 'next/link';
-
-interface User {
-  id: string;
-  fname: string;
-  sname: string;
-  email: string;
-}
+import { useAuth } from '@/hooks/useAuth';
 
 interface PriceData {
   price: number | null;
@@ -62,38 +55,14 @@ function formatDate(dateString: string): string {
 export default function ShoePage() {
   const params = useParams();
   const slug = params.slug as string;
+  const { user } = useAuth();
   
-  const [user, setUser] = useState<User | null>(null);
   const [shoe, setShoe] = useState<Shoe | null>(null);
-  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
   const [isLoadingShoe, setIsLoadingShoe] = useState<boolean>(true);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [discount, setDiscount] = useState<number | ''>('');
 
-  // Fetch user data
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await fetch('/api/user', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          cache: 'no-store',
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        }
-      } catch {
-        // User not authenticated, continue without user data
-      } finally {
-        setIsLoadingUser(false);
-      }
-    }
-
-    fetchUser();
-  }, []);
 
   // Fetch watchlist data
   useEffect(() => {
@@ -181,38 +150,33 @@ export default function ShoePage() {
     }
   };
 
-  if (isLoadingUser || isLoadingShoe) {
+  if (isLoadingShoe) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner text="Loading shoe details..." />
-      </main>
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <LoadingSpinner text="Loading shoe details..." />
+        </div>
+      </PageLayout>
     );
   }
 
   if (!shoe) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold">Shoe not found</h1>
-          <p className="mt-2 text-gray-600">The shoe you&apos;re looking for doesn&apos;t exist.</p>
+      <PageLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold">Shoe not found</h1>
+            <p className="mt-2 text-gray-600">The shoe you&apos;re looking for doesn&apos;t exist.</p>
+          </div>
         </div>
-      </main>
+      </PageLayout>
     );
   }
 
   return (
-    <main className="min-h-screen">
-      <Header user={user} />
+    <PageLayout>
       <div className="p-6">
         <div className="mx-auto max-w-4xl">
-          <div className="mb-6">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
-            >
-              ← Back to Dashboard
-            </Link>
-          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div>
               <ShoeImage imageUrl={shoe.image_url} brand={shoe.brand} model={shoe.model} size="large" />
@@ -398,6 +362,6 @@ export default function ShoePage() {
           </div>
         </div>
       )}
-    </main>
+    </PageLayout>
   );
 }

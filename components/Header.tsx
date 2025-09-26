@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import LogoutButton from './LogoutButton';
 
 interface User {
   fname: string | null;
@@ -25,58 +24,65 @@ export default function Header({
         {user ? (
           // Authenticated user header
           <>
+            <div className="flex items-center space-x-3">
+              {isDemo ? (
+                <>
+                  <button
+                    className="btn btn-outline btn-sm cursor-not-allowed opacity-75"
+                    disabled
+                  >
+                    Dashboard
+                  </button>
+                  <button
+                    className="btn btn-outline btn-sm cursor-not-allowed opacity-75"
+                    disabled
+                  >
+                    Search
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="btn btn-outline btn-sm"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/shoes/search"
+                    className="btn btn-outline btn-sm"
+                  >
+                    Search
+                  </Link>
+                </>
+              )}
+            </div>
+            
             {isDemo ? (
               <div className="flex items-center space-x-3 group cursor-not-allowed opacity-75">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
-                  {user.fname?.[0] || 'U'}
-                </div>
                 <div className="leading-tight">
                   <p className="text-sm text-gray-500">Welcome back</p>
                   <h1 className="text-base font-semibold">
                     {user.fname || 'User'} {user.sname || ''}
                   </h1>
                 </div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
+                  {user.fname?.[0] || 'U'}
+                </div>
               </div>
             ) : (
               <Link href="/profile" className="flex items-center space-x-3 group">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white ring-0 ring-transparent group-hover:ring-2 group-hover:ring-emerald-400 transition">
-                  {user.fname?.[0] || 'U'}
-                </div>
                 <div className="leading-tight">
                   <p className="text-sm text-gray-500">Welcome back</p>
                   <h1 className="text-base font-semibold group-hover:underline">
                     {user.fname || 'User'} {user.sname || ''}
                   </h1>
                 </div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white ring-0 ring-transparent group-hover:ring-2 group-hover:ring-emerald-400 transition">
+                  {user.fname?.[0] || 'U'}
+                </div>
               </Link>
             )}
-            <div className="flex items-center space-x-3">
-              {isDemo ? (
-                <button
-                  className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm cursor-not-allowed opacity-75"
-                  disabled
-                >
-                  Profile
-                </button>
-              ) : (
-                <Link
-                  href="/profile"
-                  className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
-                >
-                  Profile
-                </Link>
-              )}
-              {isDemo ? (
-                <button
-                  className="btn btn-danger btn-sm cursor-not-allowed opacity-75"
-                  disabled
-                >
-                  Logout
-                </button>
-              ) : (
-                <LogoutButton />
-              )}
-            </div>
           </>
         ) : (
           // Guest user header

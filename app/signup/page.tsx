@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import PageLayout from '@/components/PageLayout';
 
 export default function Signup() {
   const router = useRouter();
@@ -58,8 +59,9 @@ export default function Signup() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-md card p-8">
+    <PageLayout>
+      <div className="flex items-center justify-center min-h-[50vh] p-6">
+        <div className="w-full max-w-md card p-8">
         <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
         <p className="mt-1 text-sm text-gray-600">Start tracking your favorite shoes.</p>
 
@@ -119,7 +121,8 @@ export default function Signup() {
             Create account
           </button>
         </form>
+        </div>
       </div>
-    </main>
+    </PageLayout>
   );
 }
