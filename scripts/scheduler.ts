@@ -2,13 +2,17 @@
 
 import cron from 'node-cron';
 import { ScraperManager } from '../lib/scraping/scraper-manager';
+import { EmailService } from '../lib/email-service';
+import { supabase } from '@/lib/db';
 
 class ScrapingScheduler {
   private scraperManager: ScraperManager;
+  private emailService: EmailService;
   private isRunning: boolean = false;
 
   constructor() {
     this.scraperManager = new ScraperManager();
+    this.emailService = new EmailService();
   }
 
   start(): void {
@@ -34,7 +38,7 @@ class ScrapingScheduler {
     cron.schedule('0 */12 * * *', async () => {
       console.log('📊 Starting price analysis...');
       try {
-        await this.analyzePricesAndSendAlerts();
+        await this.analysePricesAndSendAlerts();
         console.log('✅ Price analysis completed');
       } catch (error) {
         console.error('💥 Price analysis failed:', error);
@@ -93,7 +97,7 @@ class ScrapingScheduler {
     console.log('');
   }
 
-  private async analyzePricesAndSendAlerts(): Promise<void> {
+  private async analysePricesAndSendAlerts(): Promise<void> {
     const { supabase } = await import('../lib/db');
     
     try {
@@ -166,8 +170,64 @@ class ScrapingScheduler {
   }
 
   private async sendPriceAlert(user: any, shoe: any, currentPrice: number, discountPercentage: number): Promise<void> {
-    // TODO: Implement actual email sending logic
-    console.log(`📧 Price alert for ${user.email}: ${shoe.model} is now £${currentPrice} (${discountPercentage.toFixed(1)}% off)`);
+    try {
+      // Get the original price and product URL from the previous price record
+      const { data: previousPrice } = await supabase
+        .from('prices')
+        .select('price, product_url')
+        .eq('shoe_id', shoe.id)
+        .order('date', { ascending: false })
+        .limit(1)
+        .single();
+
+      const originalPrice = previousPrice?.price || currentPrice / (1 - discountPercentage / 100);
+      const productUrl = previousPrice?.product_url || `https://speedsale.vercel.app/shoes/${shoe.slug}`;
+
+      // Get user's discount threshold from watchlist
+      const { data: watchlist } = await supabase
+        .from('watchlists')
+        .select('discount')
+        .eq('user_id', user.id)
+        .eq('shoe_id', shoe.id)
+        .single();
+
+      const userDiscountThreshold = watchlist?.discount || 10;
+
+      // Prepare email data
+      const emailData = {
+        user: {
+          id: user.id,
+          email: user.email,
+          fname: user.fname,
+          sname: user.sname
+        },
+        shoe: {
+          id: shoe.id,
+          brand: shoe.brand,
+          model: shoe.model,
+          image_url: shoe.image_url,
+          category: shoe.category,
+          gender: shoe.gender
+        },
+        current_price: currentPrice,
+        original_price: originalPrice,
+        discount_percentage: discountPercentage,
+        user_discount_threshold: userDiscountThreshold,
+        product_url: productUrl,
+        size: 'Various', // Could be enhanced to get actual size from price data
+        color: 'Various' // Could be enhanced to get actual colour from price data
+      };
+
+      const success = await this.emailService.sendPriceAlert(emailData);
+      
+      if (success) {
+        console.log(`✅ Price alert sent to ${user.email} for ${shoe.brand} ${shoe.model}`);
+      } else {
+        console.log(`❌ Failed to send price alert to ${user.email}`);
+      }
+    } catch (error) {
+      console.error(`❌ Error sending price alert to ${user.email}:`, error);
+    }
   }
 
   private async healthCheck(): Promise<void> {
@@ -200,7 +260,7 @@ class ScrapingScheduler {
   }
 
   async runPriceAnalysis(): Promise<void> {
-    await this.analyzePricesAndSendAlerts();
+    await this.analysePricesAndSendAlerts();
   }
 
   async runScrapingJob(retailer: string, category: string): Promise<void> {
