@@ -1,17 +1,20 @@
 import { NextResponse } from 'next/server';
-import { serialize } from 'cookie';
+import { createServerClient } from '@/lib/db';
 
 export async function POST() {
-  // Log the user out by clearing the session cookie
-  const cookie = serialize('session', '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 0,
-    path: '/',
-  });
+  try {
+    const supabase = createServerClient();
 
-  return NextResponse.json(
-    { message: 'Logged out' },
-    { status: 200, headers: { 'Set-Cookie': cookie } }
-  );
+    // Sign out user from Supabase Auth
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'Successfully logged out' });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

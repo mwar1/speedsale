@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-import { serialize } from 'cookie';
-import bcrypt from 'bcryptjs';
-import { supabase } from '@/lib/db';
+import { createServerClient } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,41 +9,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing email or password' }, { status: 400 });
     }
 
-    // Fetch user by email
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .limit(1)
-      .single();
+    const supabase = createServerClient();
 
-    if (error || !users) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
-    }
-
-    // Compare password with stored hash
-    const validPassword = await bcrypt.compare(password, users.password);
-
-    if (!validPassword) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
-    }
-
-    const token = jwt.sign(
-      { id: users.id },
-      process.env.JWT_SECRET!,
-      { expiresIn: '7d' }
-    );
-
-    const cookie = serialize('session', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
+    // Sign in user with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
 
-    const res = NextResponse.json({ success: true });
-    res.headers.set('Set-Cookie', cookie);
-    return res;
+    if (authError) {
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    }
+
+    if (!authData.user || !authData.session) {
+      return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
+    }
+
+    // Set the session cookie for the client
+    const response = NextResponse.json({ 
+      success: true,
+      user: {
+        id: authData.user.id,
+        email: authData.user.email,
+        fname: authData.user.user_metadata?.fname,
+        sname: authData.user.user_metadata?.sname,
+      }
+    });
+
+    // Set the Supabase session cookie
+    const { error: cookieError } = await supabase.auth.setSession(authData.session);
+    
+    if (cookieError) {
+      console.error('Failed to set session cookie:', cookieError);
+    }
+
+    return response;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });

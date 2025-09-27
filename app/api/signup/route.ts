@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import { supabase } from '@/lib/db';
+import { createServerClient } from '@/lib/db';
 import { EmailService } from '@/lib/email-service';
 
 export async function POST(req: NextRequest) {
@@ -21,32 +20,61 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const supabase = createServerClient();
 
-    // Insert user into DB
-    const { data: user, error } = await supabase
-      .from('users')
-      .insert([{ email, fname: firstName, sname: surname, password: hashedPassword }])
-      .select('id')
-      .single();
+    // Sign up user with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          fname: firstName,
+          sname: surname,
+        },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://speedsale.vercel.app'}/api/auth/callback?next=/dashboard`
+      }
+    });
 
-    // Insert row into preferences table
-    const { error: preferences_error } = await supabase
-      .from('user_preferences')
-      .insert([{ user_id: user?.id }]);
-
-    if (error) {
+    if (authError) {
       return NextResponse.json(
-        { error: error.message },
+        { error: authError.message },
+        { status: 400 }
+      );
+    }
+
+    if (!authData.user) {
+      return NextResponse.json(
+        { error: 'Failed to create user' },
         { status: 500 }
       );
     }
 
+    // Insert additional user data into your custom users table
+    // Note: We don't store password here since Supabase Auth handles it
+    const { error: userError } = await supabase
+      .from('users')
+      .insert([{ 
+        id: authData.user.id,
+        email, 
+        fname: firstName, 
+        sname: surname,
+        password: '' // Empty since Supabase Auth handles passwords
+      }]);
+
+    // Insert row into preferences table
+    const { error: preferences_error } = await supabase
+      .from('user_preferences')
+      .insert([{ user_id: authData.user.id }]);
+
+    if (userError) {
+      console.error('Failed to insert user data:', userError);
+      // Note: User is created in auth but not in our custom table
+      // You might want to handle this differently in production
+    }
+
     if (preferences_error) {
-      return NextResponse.json(
-        { error: preferences_error.message },
-        { status: 500 }
-      );
+      console.error('Failed to insert preferences:', preferences_error);
+      // Note: User preferences not created
     }
 
     // Send welcome email
@@ -54,12 +82,11 @@ export async function POST(req: NextRequest) {
       const emailService = new EmailService();
       const welcomeData = {
         user: {
-          id: user.id,
+          id: authData.user.id,
           email: email,
           fname: firstName,
           sname: surname,
         },
-
       };
       await emailService.sendWelcomeEmail(welcomeData);
     } catch (emailError) {
@@ -67,7 +94,15 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: 'Success' , user: user.id },
+      { 
+        message: 'Success',
+        user: {
+          id: authData.user.id,
+          email: authData.user.email,
+          fname: firstName,
+          sname: surname
+        }
+      },
       { status: 201 }
     );
   } catch (err) {

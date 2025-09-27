@@ -1,81 +1,101 @@
-import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/auth';
-import { supabase } from '@/lib/db';
+import { createServerClient } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('session')?.value;
-  const user = token ? verifyToken(token) : null;
+  try {
+    const supabase = createServerClient();
 
-  if (!user) {
-    const response = NextResponse.json({ error: 'Not logged in' }, { status: 401 });
+    // Get the current session from Supabase
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+      const response = NextResponse.json({ error: 'Not logged in' }, { status: 401 });
+      response.headers.set('Cache-Control', 'no-store');
+      return response;
+    }
+
+    // Get user data from your custom users table
+    const { data: currentUser, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error) {
+      const response = NextResponse.json({ error: 'User not found' }, { status: 404 });
+      response.headers.set('Cache-Control', 'no-store');
+      return response;
+    }
+
+    const response = NextResponse.json({ user: currentUser });
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
+  } catch {
+    const response = NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     response.headers.set('Cache-Control', 'no-store');
     return response;
   }
-
-  if (!user || typeof user === 'string') {
-    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-  }
-
-  const { data: currentUser, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  if (error) {
-    const response = NextResponse.json({ error: 'User not found' }, { status: 404 });
-    response.headers.set('Cache-Control', 'no-store');
-    return response;
-  }
-
-  const response = NextResponse.json({ user: currentUser });
-  response.headers.set('Cache-Control', 'no-store');
-  return response;
 }
 
 export async function PUT(req: NextRequest) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('session')?.value;
-  const user = token ? verifyToken(token) : null;
+  try {
+    const supabase = createServerClient();
 
-  if (!user) {
-    const response = NextResponse.json({ error: 'Not logged in' }, { status: 401 });
-    response.headers.set('Cache-Control', 'no-store');
-    return response;
-  }
+    // Get the current session from Supabase
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-  if (!user || typeof user === 'string') {
-    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-  }
+    if (sessionError || !session) {
+      const response = NextResponse.json({ error: 'Not logged in' }, { status: 401 });
+      response.headers.set('Cache-Control', 'no-store');
+      return response;
+    }
 
-  const { new_fname, new_sname, new_email } = await req.json();
+    const { new_fname, new_sname, new_email } = await req.json();
 
-  const { data: existingUsers, error: checkError } = await supabase
-    .from('users')
-    .select('id')
-    .eq('email', new_email)
-    .neq('id', user.id)
-    .limit(1);
+    // Check if email is already in use by another user
+    const { data: existingUsers, error: checkError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', new_email)
+      .neq('id', session.user.id)
+      .limit(1);
 
     if (checkError) {
       return NextResponse.json({ error: checkError.message }, { status: 500 });
     }
 
-  if (existingUsers?.length) {
-    return NextResponse.json({ error: 'Email already in use' }, { status: 400 });
-  }
+    if (existingUsers?.length) {
+      return NextResponse.json({ error: 'Email already in use' }, { status: 400 });
+    }
 
-  const { data: currentUser, error } = await supabase
-    .from('users')
-    .update({ fname: new_fname, sname: new_sname, email: new_email })
-    .eq('id', user.id)
-    .select();
+    // Update user data
+    const { data: currentUser, error } = await supabase
+      .from('users')
+      .update({ fname: new_fname, sname: new_sname, email: new_email })
+      .eq('id', session.user.id)
+      .select();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Update Supabase auth user metadata
+    const { error: updateAuthError } = await supabase.auth.updateUser({
+      data: {
+        fname: new_fname,
+        sname: new_sname,
+      }
+    });
+
+    if (updateAuthError) {
+      console.error('Failed to update auth metadata:', updateAuthError);
+      // Continue anyway since the main user data was updated
+    }
   
     return NextResponse.json({ user: currentUser }, { status: 200 });
+  } catch {
+    const response = NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
+  }
 }
