@@ -18,6 +18,9 @@ async function main() {
   const scraperManager = new ScraperManager();
   const result = await scraperManager.scrapeRetailer(retailer, category);
   console.log(`Scraping completed: ${result.productsFound} found, ${result.productsSaved} saved`);
+  
+  // Explicitly exit to ensure clean termination
+  process.exit(0);
 }
 
 main().catch(console.error);

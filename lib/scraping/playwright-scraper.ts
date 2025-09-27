@@ -12,12 +12,12 @@ export class PlaywrightScraper extends BaseScraper {
     try {
       console.log(`Starting Playwright scraping for ${this.config.name}${category ? ` (${category})` : ''}`);
       
-      const browser = await chromium.launch({ 
+      this.browser = await chromium.launch({ 
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
       });
       
-      const context = await browser.newContext({
+      const context = await this.browser.newContext({
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         viewport: { width: 1920, height: 1080 }
       });
