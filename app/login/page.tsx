@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Link from "next/link";
+import PasswordInput from '@/components/PasswordInput';
 
 export default function Login() {
   const router = useRouter();
@@ -66,8 +67,7 @@ export default function Login() {
           </div>
 
           <div>
-            <input
-              type="password"
+            <PasswordInput
               placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}

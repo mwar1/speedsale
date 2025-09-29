@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
+import PasswordInput from '@/components/PasswordInput';
 
 export default function Signup() {
   const router = useRouter();
@@ -94,8 +95,7 @@ export default function Signup() {
             required
           />
 
-          <input
-            type="password"
+          <PasswordInput
             placeholder="Password"
             value={password}
             onChange={e => setPassword(e.target.value)}
@@ -103,8 +103,7 @@ export default function Signup() {
             required
           />
 
-          <input
-            type="password"
+          <PasswordInput
             placeholder="Re-enter password"
             value={passwordConfirm}
             onChange={e => setPasswordConfirm(e.target.value)}

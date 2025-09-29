@@ -6,6 +6,7 @@ import LogoutButton from '@/components/LogoutButton';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import { useAuth } from '@/hooks/useAuth';
+import PasswordInput from '@/components/PasswordInput';
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -274,8 +275,7 @@ function PasswordModal({ onClose }: PasswordModalProps) {
         <form onSubmit={onSubmit} className="mt-4 space-y-4">
           <label className="block text-sm text-gray-700">
             Current password
-            <input
-              type="password"
+            <PasswordInput
               value={current}
               onChange={(e) => setCurrent(e.target.value)}
               className="mt-2 input"
@@ -290,8 +290,7 @@ function PasswordModal({ onClose }: PasswordModalProps) {
           )}
           <label className="block text-sm text-gray-700">
             New password
-            <input
-              type="password"
+            <PasswordInput
               value={nextPwd}
               onChange={(e) => setNextPwd(e.target.value)}
               className="mt-2 input"
@@ -301,8 +300,7 @@ function PasswordModal({ onClose }: PasswordModalProps) {
           </label>
           <label className="block text-sm text-gray-700">
             Confirm new password
-            <input
-              type="password"
+            <PasswordInput
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               className="mt-2 input"
