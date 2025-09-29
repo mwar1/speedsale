@@ -17,6 +17,7 @@ interface Shoe {
   category: string | null;
   gender: string | null;
   slug: string | null;
+  price: number | null;
 }
 
 class PriceAnalyser {
@@ -119,17 +120,16 @@ class PriceAnalyser {
     try {
       const supabase = createStandaloneClient();
       
-      // Get the original price and product URL from the previous price record
-      const { data: previousPrice } = await supabase
+      const { data: currentPriceRecord } = await supabase
         .from('prices')
-        .select('price, product_url')
+        .select('product_url')
         .eq('shoe_id', shoe.id)
         .order('date', { ascending: false })
         .limit(1)
         .single();
 
-      const originalPrice = previousPrice?.price || currentPrice / (1 - discountPercentage / 100);
-      const productUrl = previousPrice?.product_url || `https://speedsale.vercel.app/shoes/${shoe.slug}`;
+      const originalPrice = shoe.price || currentPrice / (1 - discountPercentage / 100);
+      const productUrl = currentPriceRecord?.product_url || `https://speedsale.vercel.app/shoes/${shoe.slug}`;
 
       // Get user's discount threshold from watchlist
       const { data: watchlist } = await supabase
