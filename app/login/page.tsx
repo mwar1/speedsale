@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import PageLayout from '@/components/PageLayout';
+import Header from '@/components/Header';
 import Link from "next/link";
 
 export default function Login() {
@@ -46,7 +46,8 @@ export default function Login() {
   }
 
   return (
-    <PageLayout>
+    <main className="min-h-screen">
+      <Header showAuthButtons={true} />
       <div className="flex items-center justify-center min-h-[50vh] p-6">
         <div className="w-full max-w-md card p-8">
         <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
@@ -95,6 +96,6 @@ export default function Login() {
         </form>
         </div>
       </div>
-    </PageLayout>
+    </main>
   );
 }
