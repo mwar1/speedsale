@@ -1,17 +1,36 @@
-import { createServerClient } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
 import { EmailService } from '@/lib/email-service';
 import { NextResponse, NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
+  const token = requestUrl.searchParams.get('token');
+  const type = requestUrl.searchParams.get('type');
   const next = requestUrl.searchParams.get('next') ?? '/dashboard';
 
-  if (code) {
-    const supabase = createServerClient();
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+  const supabase = await createClient();
+  let data, error;
 
-    if (!error && data.user) {
+  if (code) {
+    // Handle code-based confirmation
+    const result = await supabase.auth.exchangeCodeForSession(code);
+    data = result.data;
+    error = result.error;
+  } else if (token && type === 'signup') {
+    // Handle token-based confirmation using verifyOtp with token_hash
+    const result = await supabase.auth.verifyOtp({
+      token_hash: token,
+      type: 'signup'
+    });
+    data = result.data;
+    error = result.error;
+  } else {
+    // No valid confirmation method found
+    return NextResponse.redirect(new URL('/error?message=Invalid confirmation link', request.url));
+  }
+
+  if (!error && data?.user) {
       // User is now confirmed and session is established
       // Complete user setup in your custom tables if not already done
       const { user } = data;
@@ -75,7 +94,6 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.redirect(new URL(next, request.url));
     }
-  }
 
   // return the user to an error page with instructions
   return NextResponse.redirect(new URL('/error', request.url));

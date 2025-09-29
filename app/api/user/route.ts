@@ -1,14 +1,14 @@
-import { createServerClient } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const supabase = createServerClient();
+    const supabase = await createClient();
 
-    // Get the current session from Supabase
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // Get the current user from Supabase (authenticated)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError || !session) {
+    if (userError || !user) {
       const response = NextResponse.json({ error: 'Not logged in' }, { status: 401 });
       response.headers.set('Cache-Control', 'no-store');
       return response;
@@ -18,7 +18,7 @@ export async function GET() {
     const { data: currentUser, error } = await supabase
       .from('users')
       .select('*')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (error) {
@@ -39,12 +39,12 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createClient();
 
-    // Get the current session from Supabase
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // Get the current user from Supabase (authenticated)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError || !session) {
+    if (userError || !user) {
       const response = NextResponse.json({ error: 'Not logged in' }, { status: 401 });
       response.headers.set('Cache-Control', 'no-store');
       return response;
@@ -57,7 +57,7 @@ export async function PUT(req: NextRequest) {
       .from('users')
       .select('id')
       .eq('email', new_email)
-      .neq('id', session.user.id)
+      .neq('id', user.id)
       .limit(1);
 
     if (checkError) {
@@ -72,7 +72,7 @@ export async function PUT(req: NextRequest) {
     const { data: currentUser, error } = await supabase
       .from('users')
       .update({ fname: new_fname, sname: new_sname, email: new_email })
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .select();
 
     if (error) {

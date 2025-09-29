@@ -1,16 +1,16 @@
 // app/api/profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
-import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('session')?.value;
-    const user = token ? verifyToken(token) : null;
-    if (!user) {
-        return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    const supabase = await createClient();
+    
+    // Get the current user from Supabase (authenticated)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
     const user_id = user.id;

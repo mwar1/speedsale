@@ -14,7 +14,10 @@ export default function LogoutButton({
   const router = useRouter();
 
   const handleLogout = async () => {
-    await fetch('/api/logout', { method: 'POST', cache: 'no-store' });
+    // Use client-side Supabase logout
+    const { createClient } = await import('@/utils/supabase/client');
+    const supabase = createClient();
+    await supabase.auth.signOut();
     router.replace('/');
     router.refresh();
   };

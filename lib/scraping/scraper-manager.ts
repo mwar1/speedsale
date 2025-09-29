@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/db';
+import { createStandaloneClient } from '@/utils/supabase/standalone';
 import { ScrapedShoe, ScrapingJob, ScrapingResult } from './types';
 import { PlaywrightScraper } from './playwright-scraper';
 import { CheerioScraper } from './cheerio-scraper';
@@ -18,6 +18,8 @@ export class ScraperManager {
     };
 
     try {
+      const supabase = createStandaloneClient();
+      
       // Check if retailer is enabled in database
       const { data: dbRetailer, error: dbError } = await supabase
         .from('retailers')
@@ -98,6 +100,7 @@ export class ScraperManager {
   }
 
   private async saveProducts(products: ScrapedShoe[], retailerId: string): Promise<number> {
+    const supabase = createStandaloneClient();
     let savedCount = 0;
 
     // Create progress bar for database saving
@@ -271,6 +274,7 @@ export class ScraperManager {
   }
 
   async scheduleScrapingJobs(): Promise<ScrapingResult[]> {
+    const supabase = createStandaloneClient();
     const results: ScrapingResult[] = [];
     const enabledRetailers = retailerConfigs.filter(r => r.enabled);
     

@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { supabase } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET() {
-  const cookie = await cookies();
-  const token = cookie.get('session')?.value;
-  const user = token ? verifyToken(token) : null;
+  const supabase = await createClient();
 
-  if (!user) {
+  // Get the current user from Supabase (authenticated)
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+  if (userError || !user) {
     return NextResponse.json({ error: 'Not logged in' }, { status: 401 });
   }
 

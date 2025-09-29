@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/db';
+import { createClient } from '@/utils/supabase/client';
 import { User } from '@supabase/supabase-js';
 
 interface CustomUser {
@@ -22,6 +22,8 @@ export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<CustomUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const supabase = createClient();
 
   useEffect(() => {
     async function fetchUser() {

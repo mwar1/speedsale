@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
-import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('session')?.value;
-    const user = token ? verifyToken(token) : null;
+    const supabase = await createClient();
+    
+    // Get the current user from Supabase (authenticated)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (!user) {
+    if (userError || !user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
@@ -37,11 +36,12 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('session')?.value;
-    const user = token ? verifyToken(token) : null;
+    const supabase = await createClient();
+    
+    // Get the current user from Supabase (authenticated)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (!user) {
+    if (userError || !user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 

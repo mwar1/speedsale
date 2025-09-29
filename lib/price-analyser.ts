@@ -1,5 +1,6 @@
+import 'dotenv-flow/config';
 import { EmailService } from './email-service';
-import { supabase } from '@/lib/db';
+import { createStandaloneClient } from '@/utils/supabase/standalone';
 
 interface User {
   id: string;
@@ -27,6 +28,8 @@ class PriceAnalyser {
 
   async analysePricesAndSendAlerts(): Promise<void> {
     try {
+      const supabase = createStandaloneClient();
+      
       // Get users with watchlists
       const { data: watchlists, error } = await supabase
         .from('watchlists')
@@ -114,6 +117,8 @@ class PriceAnalyser {
 
   private async sendPriceAlert(user: User, shoe: Shoe, currentPrice: number, discountPercentage: number): Promise<void> {
     try {
+      const supabase = createStandaloneClient();
+      
       // Get the original price and product URL from the previous price record
       const { data: previousPrice } = await supabase
         .from('prices')
@@ -175,6 +180,8 @@ class PriceAnalyser {
 
   async runHealthCheck(): Promise<void> {
     try {
+      const supabase = createStandaloneClient();
+      
       // Check database connection
       const { data, error } = await supabase
         .from('retailers')

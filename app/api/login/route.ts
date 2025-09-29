@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing email or password' }, { status: 400 });
     }
 
-    const supabase = createServerClient();
+    const supabase = await createClient();
 
     // Sign in user with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Set the Supabase session cookie
+    // Set the Supabase session cookies using the proper method
     const { error: cookieError } = await supabase.auth.setSession(authData.session);
     
     if (cookieError) {

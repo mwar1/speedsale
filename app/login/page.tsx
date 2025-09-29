@@ -22,21 +22,24 @@ export default function Login() {
     }
 
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      // Use client-side Supabase authentication
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || 'Login failed');
+      if (error) {
+        setError(error.message || 'Login failed');
         return;
       }
 
-      // On success, redirect (adjust target page as needed)
-      router.push('/dashboard');
+      if (data.user) {
+        // On success, redirect to dashboard
+        router.push('/dashboard');
+      }
     } catch {
       setError('Failed to login. Try again later.');
     }

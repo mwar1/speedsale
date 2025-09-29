@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 
+import 'dotenv-flow/config';
 import { ScraperManager } from '../lib/scraping/scraper-manager';
 
 async function main() {

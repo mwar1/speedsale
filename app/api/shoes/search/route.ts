@@ -1,10 +1,11 @@
 // app/api/shoes/search/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET(req: NextRequest) {
   const search = req.nextUrl.searchParams.get('search')?.trim() || '';
 
+  const supabase = await createClient();
   let query = supabase.from('shoes').select('*');
 
   if (search.length > 0) {
